@@ -18,11 +18,7 @@ jobs:
           extensions: gd
       - name: Checkout Code
         uses: actions/checkout@v4
-      - name: Cache Composer dependencies
-        uses: actions/cache@v3
-        with:
-          path: /tmp/composer-cache
-          key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+
       - name: Composer Install
         run: "composer install --no-ansi --no-interaction --no-scripts --prefer-dist"
 
@@ -50,11 +46,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Cache Composer dependencies
-        uses: actions/cache@v3
-        with:
-          path: /tmp/composer-cache
-          key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
       - name: Composer Install
         run: "composer install --no-ansi --no-interaction --no-scripts --prefer-dist"
 
