@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Composer Install
-        run: "composer install --no-ansi --no-interaction --no-scripts --prefer-dist"
+        run: "composer update"
 
       - name: Execute PHP CS Fixer review
         run: composer run csfix-review
@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Composer Install
-        run: "composer install --no-ansi --no-interaction --no-scripts --prefer-dist"
+        run: "composer update"
 
 
       - name: Execute Tests
