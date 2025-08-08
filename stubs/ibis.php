@@ -31,10 +31,7 @@ $header = Ibis::header()
     ->text('Custom Header');
 
 $sample = Ibis::sample()
-    ->text('
-        This is a sample from "Ibis Next: create your eBooks with Markdown" by Roberto Butti.
-        <br>For more information, <a href="https://github.com/Hi-Folks/ibis-next">Click here</a>.
-    ')
+    ->text('This is a sample from "Ibis Next: create your eBooks with Markdown" by Roberto Butti.<br>For more information, <a href="https://github.com/Hi-Folks/ibis-next">Click here</a>.')
     ->addPages(1, 7)
     ->addPages(15, 15);
 
@@ -52,6 +49,6 @@ return Ibis::config()
     ->sample($sample)
     ->files($files);
 //    ->addFont(new Font('calibri', 'Calibri-Regular.ttf'));
-//    ->contentPath('content');
-//    ->exportPath('export');
+//    ->contentPath('./content');
+//    ->exportPath('./export');
 //    ->commonMark([]);

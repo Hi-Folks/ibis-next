@@ -230,14 +230,14 @@ class Ibis
         return $sample;
     }
 
-    protected static function buildFilesConfigFromArray(array $config): FileList
+    protected static function buildFilesConfigFromArray(array $files): FileList
     {
-        $files = new FileList();
+        $fileList = new FileList();
 
-        foreach ($config['files'] as $file) {
-            $files->addFile($file);
+        foreach ($files as $file) {
+            $fileList->addFile($file);
         }
 
-        return $files;
+        return $fileList;
     }
 }

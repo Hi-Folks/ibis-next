@@ -466,12 +466,10 @@ describe('Files configuration', function () {
     test('loads files list', function () {
         $data = [
             'files' => [
-                'files' => [
-                    'intro.md',
-                    'chapter1.md',
-                    'chapter2.md',
-                    'conclusion.md',
-                ],
+                'intro.md',
+                'chapter1.md',
+                'chapter2.md',
+                'conclusion.md',
             ],
         ];
         file_put_contents($this->testConfigPath, json_encode($data));
@@ -487,9 +485,7 @@ describe('Files configuration', function () {
 
     test('handles empty files list', function () {
         $data = [
-            'files' => [
-                'files' => [],
-            ],
+            'files' => [],
         ];
         file_put_contents($this->testConfigPath, json_encode($data));
 
@@ -502,12 +498,10 @@ describe('Files configuration', function () {
     test('loads files with different extensions', function () {
         $data = [
             'files' => [
-                'files' => [
-                    'file.md',
-                    'readme.txt',
-                    'index.html',
-                    'config.json',
-                ],
+                'file.md',
+                'readme.txt',
+                'index.html',
+                'config.json',
             ],
         ];
         file_put_contents($this->testConfigPath, json_encode($data));
@@ -561,9 +555,7 @@ describe('Complete configuration', function () {
                 'text' => 'Sample notice text',
                 'pages' => [[1, 10]],
             ],
-            'files' => [
-                'files' => ['chapter1.md', 'chapter2.md'],
-            ],
+            'files' => ['chapter1.md', 'chapter2.md'],
         ];
         file_put_contents($this->testConfigPath, json_encode($data));
 
@@ -635,11 +627,9 @@ describe('Edge cases', function () {
         $data = [
             'content_path' => './content/with spaces/',
             'files' => [
-                'files' => [
-                    'file with spaces.md',
-                    'file-with-dashes.md',
-                    'file_with_underscores.md',
-                ],
+                'file with spaces.md',
+                'file-with-dashes.md',
+                'file_with_underscores.md',
             ],
         ];
         file_put_contents($this->testConfigPath, json_encode($data));

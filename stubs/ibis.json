@@ -1,0 +1,38 @@
+{
+    "title": "Ibis Next: create your eBooks from Markdown",
+    "author": "Roberto B.",
+    "document": {
+        "width": 210,
+        "height": 297,
+        "margin_left": 27,
+        "margin_right": 27,
+        "margin_top": 14,
+        "margin_bottom": 14
+    },
+    "toc_levels": {
+        "h1": 0,
+        "h2": 0,
+        "h3": 1
+    },
+    "cover": {
+        "image": "cover-ibis.webp",
+        "position": "absolute",
+        "width": 210,
+        "height": 297,
+        "left": 0,
+        "right": 0,
+        "top": -0.2,
+        "bottom": 0
+    },
+    "header": {
+        "style": "font-style: italic; text-align: right; border-bottom: solid 1px #808080",
+        "text": "Custom Header"
+    },
+    "sample": {
+        "text": "This is a sample from \"Ibis Next: create your eBooks with Markdown\" by Roberto Butti.<br>For more information, <a href=\"https://github.com/Hi-Folks/ibis-next\">Click here</a>.",
+        "pages": [
+            [1, 7],
+            [15, 15]
+        ]
+    }
+}
