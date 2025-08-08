@@ -7,7 +7,7 @@ class FileList
     /**
      * @var array<string>
      */
-    private array $files;
+    private array $files = [];
 
     public function addFile(string $file): self
     {

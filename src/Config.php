@@ -21,7 +21,7 @@ class Config
     /**
      * @var array<Font>
      */
-    private array $fonts;
+    private array $fonts = [];
 
     private array $commonMark;
 
