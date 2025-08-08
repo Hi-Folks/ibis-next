@@ -107,9 +107,9 @@ class Config
         return $this;
     }
 
-    public function addFile(string $filePath): self
+    public function files(FileList $files): self
     {
-        $this->files[] = $filePath;
+        $this->files = $files;
 
         return $this;
     }
