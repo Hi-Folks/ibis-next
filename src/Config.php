@@ -18,6 +18,8 @@ class Config
 
     private string $contentPath;
 
+    private string $exportPath;
+
     /**
      * @var array<Font>
      */
@@ -54,6 +56,13 @@ class Config
     public function contentPath(string $contentPath): self
     {
         $this->contentPath = $contentPath;
+
+        return $this;
+    }
+
+    public function exportPath(string $exportPath): self
+    {
+        $this->exportPath = $exportPath;
 
         return $this;
     }
@@ -127,6 +136,11 @@ class Config
     public function getContentPath(): string
     {
         return $this->contentPath;
+    }
+
+    public function getExportPath(): string
+    {
+        return $this->exportPath;
     }
 
     public function getFonts(): array

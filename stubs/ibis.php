@@ -1,94 +1,57 @@
 <?php
 
-return [
-    /**
-     * The book title.
-     */
-    'title' => 'Ibis Next: create your eBooks from Markdown',
+use Ibis\Config\Font;
+use Ibis\Ibis;
 
-    /**
-     * The author name.
-     */
-    'author' => 'Roberto B.',
+$document = Ibis::document()
+    ->width(210)
+    ->height(297)
+    ->marginLeft(27)
+    ->marginRight(27)
+    ->marginBottom(14)
+    ->marginTop(14);
 
-    /**
-     * The list of fonts to be used in the different themes.
-     */
-    'fonts' => [
-        //        'calibri' => 'Calibri-Regular.ttf',
-        //        'times' => 'times-regular.ttf',
-    ],
+$toc = Ibis::toc()
+    ->h1(0)
+    ->h2(0)
+    ->h3(1);
 
-    /**
-     * Document Dimensions.
-     */
-    'document' => [
-        'format' => [210, 297],
-        'margin_left' => 27,
-        'margin_right' => 27,
-        'margin_bottom' => 14,
-        'margin_top' => 14,
-    ],
+$cover = Ibis::cover()
+    ->src('cover-ibis.webp')
+    ->position('absolute')
+    ->width(210)
+    ->height(297)
+    ->left(0)
+    ->right(0)
+    ->top(-0.2)
+    ->bottom(0);
 
-    /**
-     * Table of Contents Levels
-     */
-    'toc_levels' => [
-        'H1' => 0,
-        'H2' => 0,
-        'H3' => 1,
-    ],
+$header = Ibis::header()
+    ->style('font-style: italic; text-align: right; border-bottom: solid 1px #808080')
+    ->text('Custom Header');
 
-    /**
-     * Cover photo position and dimensions
-     */
-    'cover' => [
-        'position' => 'position: absolute; left:0; right: 0; top: -.2; bottom: 0;',
-        'dimensions' => 'width: 210mm; height: 297mm; margin: 0;',
-        'image' => 'cover-ibis.webp',
-    ],
+$sample = Ibis::sample()
+    ->text('
+        This is a sample from "Ibis Next: create your eBooks with Markdown" by Roberto Butti.
+        <br>For more information, <a href="https://github.com/Hi-Folks/ibis-next">Click here</a>.
+    ')
+    ->addPages(1, 7)
+    ->addPages(15, 15);
 
-    /**
-     * Page ranges to be used with the sample command.
-     */
-    'sample' => [
-        [1, 7],
-        [15, 15],
-    ],
+$files = Ibis::files();
+//    ->addFile('routing.md')
+//    ->addFile('artisan.md');
 
-    /**
-     * default commonmark
-     */
-    'configure_commonmark' => [
-    ],
-    /**
-     * A notice printed at the final page of a generated sample.
-     */
-    'sample_notice' => 'This is a sample from "Ibis Next: create your eBooks with Markdown" by Roberto Butti. <br>
-                        For more information, <a href="https://github.com/Hi-Folks/ibis-next">Click here</a>.',
-
-    /**
-     * CSS inline style for the page header.
-     * If you want to skip header, comment the line
-     */
-    'header' => 'font-style: italic; text-align: right; border-bottom: solid 1px #808080;',
-
-    /**
-     * List of the Markdown files.
-     * If the `md_file_list` is not set (default)
-     * all the markdown files in the content directory
-     * will be loaded.
-     * If you need to select a subset of markdown files
-     * for creating PDF or EPUB or HTML you can list here
-     * the files. You need to set the filename in the
-     * content directory. The fieldname should include the
-     * extension.
-     */
-    /*
-        'md_file_list' => [
-            'routing.md',
-            'artisan.md',
-            'console-tests.md',
-        ],
-    */
-];
+return Ibis::config()
+    ->title('Ibis Next: create your eBooks from Markdown')
+    ->author('Roberto B.')
+    ->document($document)
+    ->toc($toc)
+    ->cover($cover)
+    ->header($header)
+    ->sample($sample)
+    ->files($files);
+//    ->addFont(new Font('calibri', 'Calibri-Regular.ttf'));
+//    ->contentPath('content');
+//    ->exportPath('export');
+//    ->commonMark([]);
