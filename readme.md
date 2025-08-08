@@ -53,6 +53,13 @@ The following books have been created using **Ibis Next**. This list highlights 
 - **Formats available**: PDF and EPUB
 - **Link:** [View Book](https://web-dev-freelancing.com/)
 
+📚 **Best Practices for Laravel Enterprise Applications**
+
+- **Author(s):** Wendell Adriel
+- **Description:** Discover essential best practices for developing scalable and robust Laravel enterprise applications.
+- **Formats available**: PDF and EPUB
+- **Link:** [View Book](https://wendelladriel.com/best-practices-for-laravel-enterprise-applications)
+
 ## Installation
 
 Before you begin, ensure that you have PHP 8.1 or above installed on your system, and ensure the gd extension is enabled in your `php.ini` file.
@@ -461,7 +468,7 @@ I can support you by demoing the tool, helping with the configuration or evaluat
 
 ## Development
 
-If you want to contribute to developing this open-source project, you can read the CONTRIBUTING.md file at the project's root.
+If you want to contribute to developing this open-source project, you can read the [CONTRIBUTING file](CONTRIBUTING.md).
 
 ## Credits
 
