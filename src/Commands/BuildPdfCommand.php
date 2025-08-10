@@ -154,7 +154,7 @@ HTML,
         $this->output->writeln('');
         $this->output->writeln("✨✨ {$pdf->page} PDF pages ✨✨");
 
-        $pdfFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}.pdf";
+        $pdfFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}-{$theme}.pdf";
         $pdf->Output($pdfFilename);
 
         $this->output->writeln("<fg=green>==></> PDF file {$pdfFilename} created");
