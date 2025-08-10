@@ -53,7 +53,7 @@ class BaseBuildCommand extends Command
         $this->output->writeln('<info>Loading config/assets from current directory</info>');
         $this->output->writeln('<info>Loading config file from: ./ibis.php</info>');
 
-        $contentPath = "./{$this->config->getContentPath()}";
+        $contentPath = $this->config->getContentPath();
         if (!file_exists($contentPath) || !is_dir($contentPath)) {
             $this->output->writeln("<error>Error, check if {$contentPath} exists.</error>");
             return false;
@@ -98,10 +98,10 @@ class BaseBuildCommand extends Command
         if ($this->config->getFiles()->files() !== []) {
             foreach ($this->config->getFiles()->files() as $file) {
                 $fileList[] = $filefound;
-                $filefound = new SplFileInfo("./{$this->config->getContentPath()}/{$file}}");
+                $filefound = new SplFileInfo("{$this->config->getContentPath()}/{$file}}");
             }
         } else {
-            $fileList = $this->disk->allFiles("./{$this->config->getContentPath()}");
+            $fileList = $this->disk->allFiles($this->config->getContentPath());
         }
 
         return collect($fileList)
@@ -167,7 +167,7 @@ class BaseBuildCommand extends Command
     protected function ensureExportDirectoryExists(): void
     {
         $this->output->writeln('<fg=yellow>==></> Preparing Export Directory ...');
-        $exportDir = "./{$this->config->getExportPath()}";
+        $exportDir = $this->config->getExportPath();
 
         if (!$this->disk->isDirectory($exportDir)) {
             $this->disk->makeDirectory($exportDir, 0755, true);

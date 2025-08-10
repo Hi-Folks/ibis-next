@@ -2,7 +2,6 @@
 
 namespace Ibis\Commands;
 
-use Ibis\Config;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -10,7 +9,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use PHPePub\Core\EPub;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputOption;
 
 class BuildEpubCommand extends BaseBuildCommand
 {
@@ -39,13 +37,12 @@ class BuildEpubCommand extends BaseBuildCommand
             return Command::INVALID;
         }
 
-        $this->ensureExportDirectoryExists($this->config);
-
-
+        $this->ensureExportDirectoryExists();
         $this->config->breakLevel(1);
-        $result = $this->buildEpub($this->buildHtml(true));
 
+        $result = $this->buildEpub($this->buildHtml(true));
         $this->output->writeln('');
+
         if ($result) {
             $this->output->writeln('<info>Book Built Successfully!</info>');
         } else {
@@ -95,7 +92,7 @@ class BuildEpubCommand extends BaseBuildCommand
         $cover .= $content_end;
 
         $coverConfig = $this->config->getCover();
-        $pathCoverImage = "./assets/{$coverConfig->getSrc()}";
+        $pathCoverImage = "{$this->config->getAssetsPath()}/{$coverConfig->getSrc()}";
         if ($this->disk->isFile($pathCoverImage)) {
             $this->output->writeln("<fg=yellow>==></> Adding Book Cover {$pathCoverImage} ...");
 
@@ -131,7 +128,7 @@ class BuildEpubCommand extends BaseBuildCommand
 
                 $pathImage = $markdownPathImage;
                 if (! $this->isAbsolutePath($markdownPathImage)) {
-                    $pathImage = "./{$this->config->getContentPath()}/{$markdownPathImage}";
+                    $pathImage = "{$this->config->getContentPath()}/{$markdownPathImage}";
                 }
 
                 if (!file_exists($pathImage)) {
@@ -150,7 +147,7 @@ class BuildEpubCommand extends BaseBuildCommand
         $book->buildTOC(title: "Index", addReferences: false);
         $book->finalize();
 
-        $epubFilename = "./{$this->config->getExportPath()}/{$this->config->outputFileName()}.epub";
+        $epubFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}.epub";
         @$book->saveBook($epubFilename);
 
         $this->output->writeln("<fg=green>==></> EPUB file {$epubFilename} created");
@@ -162,6 +159,6 @@ class BuildEpubCommand extends BaseBuildCommand
      */
     private function getStyle(string $themeName): string
     {
-        return $this->disk->get("./assets/{$themeName}.css");
+        return $this->disk->get("{$this->config->getAssetsPath()}/{$themeName}.css");
     }
 }

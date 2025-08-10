@@ -17,6 +17,8 @@ class Config
 
     private string $author;
 
+    private string $assetsPath = 'assets';
+
     private string $contentPath = 'content';
 
     private string $exportPath = 'export';
@@ -52,6 +54,13 @@ class Config
     public function author(string $author): self
     {
         $this->author = $author;
+
+        return $this;
+    }
+
+    public function assetsPath(string $assetsPath): self
+    {
+        $this->assetsPath = $assetsPath;
 
         return $this;
     }
@@ -143,14 +152,19 @@ class Config
         return $this->author;
     }
 
+    public function getAssetsPath(): string
+    {
+        return "./{$this->assetsPath}";
+    }
+
     public function getContentPath(): string
     {
-        return $this->contentPath;
+        return "./{$this->contentPath}";
     }
 
     public function getExportPath(): string
     {
-        return $this->exportPath;
+        return "./{$this->exportPath}";
     }
 
     public function getBreakLevel(): int
