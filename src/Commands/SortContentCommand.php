@@ -2,7 +2,6 @@
 
 namespace Ibis\Commands;
 
-use Ibis\Config;
 use Ibis\Exceptions\InvalidConfigFileException;
 use Ibis\Ibis;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
@@ -56,7 +55,7 @@ class SortContentCommand extends Command
                 ));
 
                 $this->disk->move($file->getPathName(), "{$config->getContentPath()}/{$newName}.md");
-        });
+            });
 
         return Command::SUCCESS;
     }

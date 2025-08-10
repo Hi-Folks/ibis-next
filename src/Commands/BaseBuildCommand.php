@@ -134,7 +134,7 @@ class BaseBuildCommand extends Command
                 $chapter->put("html", $this->prepareHtmlForEbook(
                     $convertedMarkdown->getContent(),
                     $i + 1,
-                    $this->config->getBreakLevel() === 0 ? 2 : $this->config->getBreakLevel()
+                    $this->config->getBreakLevel() === 0 ? 2 : $this->config->getBreakLevel(),
                 ));
 
                 return $chapter;

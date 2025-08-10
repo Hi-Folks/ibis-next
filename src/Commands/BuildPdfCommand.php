@@ -76,7 +76,7 @@ class BuildPdfCommand extends BaseBuildCommand
         $docConfig = $this->config->getDocument();
         $pdf = new Mpdf([
             'mode' => 'utf-8',
-            'format' =>[$docConfig->getWidth(), $docConfig->getHeight()],
+            'format' => [$docConfig->getWidth(), $docConfig->getHeight()],
             'margin_left' => $docConfig->getMarginLeft(),
             'margin_right' => $docConfig->getMarginRight(),
             'margin_top' => $docConfig->getMarginTop(),
