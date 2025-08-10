@@ -221,4 +221,9 @@ class Config
     {
         return "{$this->assetsPath}/fonts";
     }
+
+    public function imagesDir(): string
+    {
+        return "{$this->assetsPath}/images";
+    }
 }

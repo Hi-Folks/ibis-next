@@ -95,9 +95,6 @@ class BuildEpubCommand extends BaseBuildCommand
         $pathCoverImage = "{$this->config->getAssetsPath()}/{$coverConfig->getSrc()}";
         if ($this->disk->isFile($pathCoverImage)) {
             $this->output->writeln("<fg=yellow>==></> Adding Book Cover {$pathCoverImage} ...");
-
-            $coverPosition = $coverConfig->positionStyle();
-            $coverDimensions = $coverConfig->dimensionsStyle();
             $book->setCoverImage('cover.jpg', file_get_contents($pathCoverImage), mime_content_type($pathCoverImage));
         }
 
