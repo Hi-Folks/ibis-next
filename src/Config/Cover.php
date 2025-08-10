@@ -4,21 +4,21 @@ namespace Ibis\Config;
 
 class Cover
 {
-    private string $src;
+    private string $src = 'cover-ibis.webp';
 
-    private string $position;
+    private string $position = 'absolute';
 
-    private float $height;
+    private float $height = 297;
 
-    private float $width;
+    private float $width = 210;
 
-    private float $left;
+    private float $left = 0;
 
-    private float $right;
+    private float $right = 0;
 
-    private float $top;
+    private float $top = -0.2;
 
-    private float $bottom;
+    private float $bottom = 0;
 
     public function src(string $src): self
     {

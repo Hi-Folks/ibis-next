@@ -4,11 +4,11 @@ namespace Ibis\Config;
 
 class Toc
 {
-    private int $h1;
+    private int $h1 = 0;
 
-    private int $h2;
+    private int $h2 = 0;
 
-    private int $h3;
+    private int $h3 = 1;
 
     public function h1(int $h1): self
     {
@@ -44,5 +44,14 @@ class Toc
     public function getH3(): int
     {
         return $this->h3;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'h1' => $this->h1,
+            'h2' => $this->h2,
+            'h3' => $this->h3,
+        ];
     }
 }

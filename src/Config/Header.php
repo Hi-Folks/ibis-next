@@ -4,9 +4,9 @@ namespace Ibis\Config;
 
 class Header
 {
-    private string $style;
+    private string $style = 'font-style: italic; text-align: right; border-bottom: solid 1px #808080';
 
-    private string $text;
+    private string $text = '';
 
     public function style(string $style): self
     {

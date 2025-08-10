@@ -4,7 +4,7 @@ namespace Ibis\Config;
 
 class Sample
 {
-    private string $text;
+    private string $text = '';
 
     /**
      * @var array<array<int>>

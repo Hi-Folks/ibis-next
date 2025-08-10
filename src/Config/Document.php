@@ -4,17 +4,17 @@ namespace Ibis\Config;
 
 class Document
 {
-    private float $height;
+    private float $height = 297;
 
-    private float $width;
+    private float $width = 210;
 
-    private float $marginLeft;
+    private float $marginLeft = 27;
 
-    private float $marginRight;
+    private float $marginRight = 27;
 
-    private float $marginTop;
+    private float $marginTop = 14;
 
-    private float $marginBottom;
+    private float $marginBottom = 14;
 
     public function height(float $height): self
     {

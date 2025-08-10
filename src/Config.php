@@ -13,9 +13,9 @@ use Illuminate\Support\Str;
 
 class Config
 {
-    private string $title;
+    private string $title = '';
 
-    private string $author;
+    private string $author = '';
 
     private string $assetsPath = 'assets';
 
@@ -30,7 +30,7 @@ class Config
      */
     private array $fonts = [];
 
-    private array $commonMark;
+    private array $commonMark = [];
 
     private Document $document;
 
@@ -212,8 +212,13 @@ class Config
         return $this->files;
     }
 
-    public function outputFileName()
+    public function outputFileName(): string
     {
         return Str::slug($this->title);
+    }
+
+    public function fontsDir(): string
+    {
+        return "{$this->assetsPath}/fonts";
     }
 }
