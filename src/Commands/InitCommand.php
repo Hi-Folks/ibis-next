@@ -47,7 +47,7 @@ class InitCommand extends Command
             $io->text('✨ Config file:');
             $io->text("    {$ibisConfigPath}");
 
-            $this->disk->put($ibisConfigPath, __DIR__ . '../../stubs/ibis.php');
+            $this->disk->copy('./stubs/ibis.php', $ibisConfigPath);
         }
 
         try {
@@ -86,11 +86,11 @@ class InitCommand extends Command
             'images/ibis-next-setting-page-header.png',
         ];
 
-        $dirAssetsStubs = __DIR__ . '../../stubs/assets';
+        $dirAssetsStubs = './stubs/assets';
         foreach ($assetsToCopy as $asset) {
             $assetStub = "{$dirAssetsStubs}/{$asset}";
             if (file_exists($assetStub)) {
-                copy($assetStub, "{$assetsPath}/{$asset}/");
+                copy($assetStub, "{$assetsPath}/{$asset}");
             } else {
                 $io->warning("File '{$asset}' not found. I will skip this file.");
             }
@@ -100,7 +100,7 @@ class InitCommand extends Command
         $io->text("    {$contentPath}");
 
         $this->disk->makeDirectory($contentPath);
-        $this->disk->copyDirectory(__DIR__ . '../../stubs/content', $contentPath);
+        $this->disk->copyDirectory('./stubs/content', $contentPath);
 
         $io->newLine();
         $io->success('✅ Done!');
