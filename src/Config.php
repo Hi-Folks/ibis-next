@@ -9,6 +9,7 @@ use Ibis\Config\Font;
 use Ibis\Config\Header;
 use Ibis\Config\Sample;
 use Ibis\Config\Toc;
+use Illuminate\Support\Str;
 
 class Config
 {
@@ -195,5 +196,10 @@ class Config
     public function getFiles(): FileList
     {
         return $this->files;
+    }
+
+    public function outputFileName()
+    {
+        return Str::slug($this->title);
     }
 }

@@ -64,7 +64,7 @@ class BaseBuildCommand extends Command
         return true;
     }
 
-    protected function buildHtml(Config $config, bool $extractImages = false): Collection
+    protected function buildHtml(bool $extractImages = false): Collection
     {
         $this->output->writeln('<fg=yellow>==></> Parsing Markdown ...');
 
@@ -85,27 +85,27 @@ class BaseBuildCommand extends Command
         $environment->addRenderer(Aside::class, new AsideRenderer());
 
         if (
-            $config->getCommonMark() !== []
-            && $config->getCommonMark()['callback']
-            && is_callable($config->getCommonMark()['callback'])
+            $this->config->getCommonMark() !== []
+            && $this->config->getCommonMark()['callback']
+            && is_callable($this->config->getCommonMark()['callback'])
         ) {
-            call_user_func($config->getCommonMark()['callback'], $environment);
+            call_user_func($this->config->getCommonMark()['callback'], $environment);
         }
 
         $converter = new MarkdownConverter($environment);
 
         $fileList = [];
-        if ($config->getFiles()->files() !== []) {
-            foreach ($config->getFiles()->files() as $file) {
+        if ($this->config->getFiles()->files() !== []) {
+            foreach ($this->config->getFiles()->files() as $file) {
                 $fileList[] = $filefound;
-                $filefound = new SplFileInfo("./{$config->getContentPath()}/{$file}}");
+                $filefound = new SplFileInfo("./{$this->config->getContentPath()}/{$file}}");
             }
         } else {
-            $fileList = $this->disk->allFiles("./{$config->getContentPath()}");
+            $fileList = $this->disk->allFiles("./{$this->config->getContentPath()}");
         }
 
         return collect($fileList)
-            ->map(function (SplFileInfo $file, $i) use ($converter, $config, $extractImages) {
+            ->map(function (SplFileInfo $file, $i) use ($converter, $extractImages) {
                 $chapter = collect([]);
                 if ($file->getExtension() !== 'md') {
                     $chapter->put("mdfile", $file->getFilename());
@@ -134,7 +134,7 @@ class BaseBuildCommand extends Command
                 $chapter->put("html", $this->prepareHtmlForEbook(
                     $convertedMarkdown->getContent(),
                     $i + 1,
-                    $config->getBreakLevel() === 0 ? 2 : $config->getBreakLevel()
+                    $this->config->getBreakLevel() === 0 ? 2 : $this->config->getBreakLevel()
                 ));
 
                 return $chapter;
@@ -164,10 +164,10 @@ class BaseBuildCommand extends Command
         return str_replace(array_keys($commands), array_values($commands), $html);
     }
 
-    protected function ensureExportDirectoryExists(Config $config): void
+    protected function ensureExportDirectoryExists(): void
     {
         $this->output->writeln('<fg=yellow>==></> Preparing Export Directory ...');
-        $exportDir = "./{$config->getExportPath()}";
+        $exportDir = "./{$this->config->getExportPath()}";
 
         if (!$this->disk->isDirectory($exportDir)) {
             $this->disk->makeDirectory($exportDir, 0755, true);

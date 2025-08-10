@@ -115,4 +115,14 @@ class Cover
     {
         return $this->bottom;
     }
+
+    public function positionStyle(): string
+    {
+        return "position: {$this->position}; left: {$this->left}; right: {$this->right}; top: {$this->top}; bottom: {$this->bottom};";
+    }
+
+    public function dimensionsStyle(): string
+    {
+        return "width: {$this->width}mm; height: {$this->height}mm; margin: 0";
+    }
 }
