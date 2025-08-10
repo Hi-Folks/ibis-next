@@ -52,7 +52,7 @@ class BuildPdfCommand extends BaseBuildCommand
 
         $this->ensureExportDirectoryExists();
         $this->themeName = $input->getArgument('theme');
-        $theme = $this->getTheme($this->themeName);
+        $theme = $this->getTheme();
 
         $this->buildPdf($this->buildHtml(), $theme);
         $this->output->writeln('');
@@ -154,7 +154,7 @@ HTML,
         $this->output->writeln('');
         $this->output->writeln("✨✨ {$pdf->page} PDF pages ✨✨");
 
-        $pdfFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}-{$theme}.pdf";
+        $pdfFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}-{$this->themeName}.pdf";
         $pdf->Output($pdfFilename);
 
         $this->output->writeln("<fg=green>==></> PDF file {$pdfFilename} created");
@@ -164,9 +164,9 @@ HTML,
     /**
      * @throws FileNotFoundException
      */
-    private function getTheme(string $themeName): string
+    private function getTheme(): string
     {
-        return $this->disk->get("{$this->config->getAssetsPath()}/theme-{$themeName}.html");
+        return $this->disk->get("{$this->config->getAssetsPath()}/theme-{$this->themeName}.html");
     }
 
     protected function fonts(array $fonts, array $fontData): array
