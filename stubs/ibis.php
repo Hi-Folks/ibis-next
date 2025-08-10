@@ -49,6 +49,6 @@ return Ibis::config()
     ->sample($sample)
     ->files($files);
 //    ->addFont(new Font('calibri', 'Calibri-Regular.ttf'));
-//    ->contentPath('./content');
-//    ->exportPath('./export');
+//    ->contentPath('content');
+//    ->exportPath('export');
 //    ->commonMark([]);

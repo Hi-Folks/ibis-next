@@ -16,9 +16,11 @@ class Config
 
     private string $author;
 
-    private string $contentPath;
+    private string $contentPath = 'content';
 
-    private string $exportPath;
+    private string $exportPath = 'export';
+
+    private int $breakLevel = 0;
 
     /**
      * @var array<Font>
@@ -63,6 +65,13 @@ class Config
     public function exportPath(string $exportPath): self
     {
         $this->exportPath = $exportPath;
+
+        return $this;
+    }
+
+    public function breakLevel(int $breakLevel): self
+    {
+        $this->breakLevel = $breakLevel;
 
         return $this;
     }
@@ -141,6 +150,11 @@ class Config
     public function getExportPath(): string
     {
         return $this->exportPath;
+    }
+
+    public function getBreakLevel(): int
+    {
+        return $this->breakLevel;
     }
 
     public function getFonts(): array

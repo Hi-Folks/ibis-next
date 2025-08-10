@@ -22,6 +22,19 @@ class Ibis
             : self::buildConfigFromJSON($configPath);
     }
 
+    /**
+     * @throws InvalidConfigFileException
+     */
+    public static function loadConfig(): Config
+    {
+        $configPath = './ibis.php';
+        if (!file_exists($configPath)) {
+            throw InvalidConfigFileException::fileDoesNotExist($configPath);
+        }
+
+        return require $configPath;
+    }
+
     public static function document(): Document
     {
         return new Document();
