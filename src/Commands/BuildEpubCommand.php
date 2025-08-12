@@ -2,7 +2,6 @@
 
 namespace Ibis\Commands;
 
-use Ibis\Config;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -10,7 +9,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use PHPePub\Core\EPub;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputOption;
 
 class BuildEpubCommand extends BaseBuildCommand
 {
@@ -21,31 +19,14 @@ class BuildEpubCommand extends BaseBuildCommand
      */
     protected function configure()
     {
-        $this
-            ->setName('epub')
-
-            ->addOption(
-                'content',
-                'c',
-                InputOption::VALUE_OPTIONAL,
-                'The path of the content directory',
-                '',
-            )
-            ->addOption(
-                'workingdir',
-                'd',
-                InputOption::VALUE_OPTIONAL,
-                'The path of the working directory where `ibis.php` and `assets` directory are located',
-                '',
-            )
+        $this->setName('epub')
             ->setDescription('Generate the book in EPUB format.');
     }
 
     /**
      * Execute the command.
      *
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
-     * @throws \Mpdf\MpdfException
+     * @throws FileNotFoundException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -56,39 +37,26 @@ class BuildEpubCommand extends BaseBuildCommand
             return Command::INVALID;
         }
 
+        $this->ensureExportDirectoryExists();
+        $this->config->breakLevel(1);
 
-        $this->ensureExportDirectoryExists($this->config->workingPath);
-
-
-        $this->config->config["breakLevel"] = 1;
-        $result = $this->buildEpub(
-            $this->buildHtml($this->config->contentPath, $this->config->config, extractImages: true),
-            $this->config->config,
-            $this->config->workingPath,
-        );
-
+        $result = $this->buildEpub($this->buildHtml(true));
         $this->output->writeln('');
-        if ($result) {
 
+        if ($result) {
             $this->output->writeln('<info>Book Built Successfully!</info>');
         } else {
             $this->output->writeln('<error>Book Built Failed!</error>');
         }
 
-
         return Command::SUCCESS;
     }
-
 
     /**
      * @throws FileNotFoundException
      */
-    protected function buildEpub(
-        Collection $chapters,
-        array $config,
-        string $currentPath,
-    ): bool {
-
+    protected function buildEpub(Collection $chapters): bool
+    {
         $content_start =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         . "<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\">\n"
@@ -96,47 +64,38 @@ class BuildEpubCommand extends BaseBuildCommand
         . "<meta http-equiv=\"Default-Style\" content=\"text/html; charset=utf-8\" />\n"
         . "<link rel=\"stylesheet\" type=\"text/css\" href=\"codeblock.css\" />\n"
         . "<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\" />\n"
-        . "<title>" . $this->config->title() . "</title>\n"
+        . "<title>{$this->config->getTitle()}</title>\n"
         . "</head>\n"
         . "<body>\n";
         $content_end = "</body></html>";
 
         $book = new EPub(EPub::BOOK_VERSION_EPUB3, "en", EPub::DIRECTION_LEFT_TO_RIGHT);
-        $book->setIdentifier(md5($this->config->title() . " - " . $this->config->author()), EPub::IDENTIFIER_UUID);
+        $book->setIdentifier(md5("{$this->config->getTitle()} - {$this->config->getAuthor()}"), EPub::IDENTIFIER_UUID);
         $book->setLanguage("en");
-        $book->setDescription($this->config->title() . " - " . $this->config->author());
-        $book->setTitle($this->config->title());
-        //$book->setPublisher("John and Jane Doe Publications", "http://JohnJaneDoePublications.com/");
-        $book->setAuthor($this->config->author(), $this->config->author());
-        $book->setIdentifier($this->config->title() . "&amp;stamp=" . time(), EPub::IDENTIFIER_URI);
-        //$book->setLanguage("en");
+        $book->setDescription("{$this->config->getTitle()} - {$this->config->getAuthor()}");
+        $book->setTitle($this->config->getTitle());
+        $book->setAuthor($this->config->getAuthor(), $this->config->getAuthor());
+        $book->setIdentifier("{$this->config->getTitle()}&amp;stamp=" . time(), EPub::IDENTIFIER_URI);
 
-        $book->addCSSFile("style.css", "css1", $this->getStyle($this->config->workingPath, "style"));
-        // https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.5/build/styles/github-gist.min.css
+        $book->addCSSFile("style.css", "css1", $this->getStyle("style"));
         $book->addCSSFile(
             "codeblock.css",
             "css2",
-            $this->getStyle($this->config->workingPath, "highlight.codeblock.min"),
+            $this->getStyle("highlight.codeblock.min"),
         );
 
-        $cover = $content_start . "<h1>" . $this->config->title() . "</h1>\n";
-        if ($this->config->author()) {
-            $cover .= "<h2>By: " . $this->config->author() . "</h2>\n";
+        $cover = $content_start . "<h1>{$this->config->getTitle()}</h1>\n";
+        if ($this->config->getAuthor()) {
+            $cover .= "<h2>By: {$this->config->getAuthor()}</h2>\n";
         }
 
         $cover .= $content_end;
-        $coverImage = "cover.jpg";
-        if (array_key_exists("image", $config['cover'])) {
-            $coverImage = $config['cover']['image'];
-        }
 
-        $pathCoverImage = Config::buildPath($currentPath, 'assets', $coverImage);
+        $coverConfig = $this->config->getCover();
+        $pathCoverImage = "{$this->config->getAssetsPath()}/{$coverConfig->getSrc()}";
         if ($this->disk->isFile($pathCoverImage)) {
-            $this->output->writeln('<fg=yellow>==></> Adding Book Cover ' . $pathCoverImage . ' ...');
-
-            $coverPosition = $config['cover']['position'] ?? 'position: absolute; left:0; right: 0; top: -.2; bottom: 0;';
-            $coverDimensions = $config['cover']['dimensions'] ?? 'width: 210mm; height: 297mm; margin: 0;';
-            $book->setCoverImage($coverImage, file_get_contents($pathCoverImage), mime_content_type($pathCoverImage));
+            $this->output->writeln("<fg=yellow>==></> Adding Book Cover {$pathCoverImage} ...");
+            $book->setCoverImage('cover.jpg', file_get_contents($pathCoverImage), mime_content_type($pathCoverImage));
         }
 
         $book->addChapter("Cover", "Cover.html", $cover);
@@ -166,7 +125,7 @@ class BuildEpubCommand extends BaseBuildCommand
 
                 $pathImage = $markdownPathImage;
                 if (! $this->isAbsolutePath($markdownPathImage)) {
-                    $pathImage = $this->config->contentPath . "/" . $markdownPathImage;
+                    $pathImage = "{$this->config->getContentPath()}/{$markdownPathImage}";
                 }
 
                 if (!file_exists($pathImage)) {
@@ -180,40 +139,23 @@ class BuildEpubCommand extends BaseBuildCommand
                     mime_content_type($pathImage),
                 );
             }
-
-            //file_put_contents('export/' . "Chapter" . $key . " .html", $content_start . $chapter["html"] . $content_end);
         }
 
-        $book->buildTOC(
-            title: "Index",
-            addReferences: false,
-            addToIndex: false,
-        );
-
+        $book->buildTOC(title: "Index", addReferences: false);
         $book->finalize();
 
-        $epubFilename = Config::buildPath(
-            $currentPath,
-            "export",
-            $this->config->outputFileName() . '.epub',
-        );
+        $epubFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}.epub";
         @$book->saveBook($epubFilename);
 
-
-        $this->output->writeln('<fg=green>==></> EPUB file ' . $epubFilename . ' created');
+        $this->output->writeln("<fg=green>==></> EPUB file {$epubFilename} created");
         return true;
     }
 
     /**
-     * @param $currentPath
-     * @param $themeName
-     * @return string
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     * @throws FileNotFoundException
      */
-    private function getStyle(string $currentPath, string $themeName)
+    private function getStyle(string $themeName): string
     {
-        return $this->disk->get($currentPath . sprintf('/assets/%s.css', $themeName));
+        return $this->disk->get("{$this->config->getAssetsPath()}/{$themeName}.css");
     }
-
-
 }

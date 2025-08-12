@@ -3,13 +3,14 @@
 namespace Ibis\Commands;
 
 use Ibis\Config;
+use Ibis\Exceptions\InvalidConfigFileException;
+use Ibis\Ibis;
 use Ibis\Markdown\Extensions\Aside;
 use Ibis\Markdown\Extensions\AsideExtension;
 use Ibis\Markdown\Extensions\AsideRenderer;
 use League\CommonMark\Extension\Attributes\AttributesExtension;
 use SplFileInfo;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -32,54 +33,40 @@ class BaseBuildCommand extends Command
 
     protected Filesystem $disk;
 
-    protected string $contentDirectory;
-
     protected string $currentPath;
 
     protected Config $config;
-
 
     protected function preExecute(InputInterface $input, OutputInterface $output): bool
     {
         $this->disk = new Filesystem();
         $this->output = $output;
 
-        $workingDir = $input->getOption('workingdir');
         try {
-            $this->config = Config::load($workingDir);
-        } catch (\Exception) {
-            $this->output->writeln('<error>Error, check if the ibis.php file exist into the ' . $workingDir . ' directory.</error>');
+            $this->config = Ibis::loadConfig();
+        } catch (InvalidConfigFileException $exception) {
+            $this->output->writeln("<error>{$exception->getMessage()}</error>");
             $this->output->writeln('<info>Did you run `ibis-next init`?</info>');
             return false;
-
         }
 
+        $this->output->writeln('<info>Loading config/assets from current directory</info>');
+        $this->output->writeln('<info>Loading config file from: ./ibis.php</info>');
 
-        $this->output->writeln('<info>Loading config/assets from: ' . $this->config->workingPath . '</info>');
-        $this->output->writeln('<info>Loading config file from: ' . $this->config->ibisConfigPath . '</info>');
-        if ($this->config->setContentPath($input->getOption('content')) === false) {
-            $this->output->writeln('<error>Error, check if ' . $this->config->contentPath . ' exists.</error>');
+        $contentPath = $this->config->getContentPath();
+        if (!file_exists($contentPath) || !is_dir($contentPath)) {
+            $this->output->writeln("<error>Error, check if {$contentPath} exists.</error>");
             return false;
         }
 
-        $this->output->writeln('<info>Loading content from: ' . $this->config->contentPath . '</info>');
-
-        if (!$this->disk->isFile($this->config->ibisConfigPath)) {
-            $this->output->writeln('<error>Error, check if ' . $this->config->ibisConfigPath . ' exists.</error>');
-            return false;
-        }
+        $this->output->writeln("<info>Loading content from: {$contentPath} </info>");
 
         return true;
     }
 
-
-    protected function buildHtml(
-        string $path,
-        array $config,
-        bool $extractImages = false,
-    ): Collection {
+    protected function buildHtml(bool $extractImages = false): Collection
+    {
         $this->output->writeln('<fg=yellow>==></> Parsing Markdown ...');
-
 
         $environment = new Environment([]);
         $environment->addExtension(new CommonMarkCoreExtension());
@@ -89,7 +76,6 @@ class BaseBuildCommand extends Command
         $environment->addExtension(new AsideExtension());
         $environment->addExtension(new AttributesExtension());
 
-
         $environment->addRenderer(FencedCode::class, new FencedCodeRenderer([
             'html', 'php', 'js', 'bash', 'json',
         ]));
@@ -98,25 +84,28 @@ class BaseBuildCommand extends Command
         ]));
         $environment->addRenderer(Aside::class, new AsideRenderer());
 
-        if (is_callable($config['configure_commonmark'])) {
-            call_user_func($config['configure_commonmark'], $environment);
+        if (
+            $this->config->getCommonMark() !== []
+            && $this->config->getCommonMark()['callback']
+            && is_callable($this->config->getCommonMark()['callback'])
+        ) {
+            call_user_func($this->config->getCommonMark()['callback'], $environment);
         }
 
         $converter = new MarkdownConverter($environment);
 
         $fileList = [];
-        if (array_key_exists("md_file_list", $config)) {
-            foreach ($config["md_file_list"] as $filename) {
-                $filefound = new SplFileInfo($path . '/' . $filename);
+        if ($this->config->getFiles()->files() !== []) {
+            foreach ($this->config->getFiles()->files() as $file) {
                 $fileList[] = $filefound;
+                $filefound = new SplFileInfo("{$this->config->getContentPath()}/{$file}}");
             }
         } else {
-            $fileList = $this->disk->allFiles($path);
+            $fileList = $this->disk->allFiles($this->config->getContentPath());
         }
 
         return collect($fileList)
-            ->map(function (SplFileInfo $file, $i) use ($converter, $config, $extractImages) {
-
+            ->map(function (SplFileInfo $file, $i) use ($converter, $extractImages) {
                 $chapter = collect([]);
                 if ($file->getExtension() !== 'md') {
                     $chapter->put("mdfile", $file->getFilename());
@@ -145,21 +134,14 @@ class BaseBuildCommand extends Command
                 $chapter->put("html", $this->prepareHtmlForEbook(
                     $convertedMarkdown->getContent(),
                     $i + 1,
-                    Arr::get($config, "breakLevel", 2),
+                    $this->config->getBreakLevel() === 0 ? 2 : $this->config->getBreakLevel(),
                 ));
-
 
                 return $chapter;
             });
-        //->implode(' ');
     }
 
-
-    /**
-     * @param $file
-     * @param int $breakLevel
-     */
-    protected function prepareHtmlForEbook(string $html, $file, $breakLevel = 2): string
+    protected function prepareHtmlForEbook(string $html, int $file, int $breakLevel = 2): string
     {
         $commands = [
             '[break]' => '<div style="page-break-after: always;"></div>',
@@ -182,27 +164,15 @@ class BaseBuildCommand extends Command
         return str_replace(array_keys($commands), array_values($commands), $html);
     }
 
-
-
-    protected function ensureExportDirectoryExists(string $currentPath): void
+    protected function ensureExportDirectoryExists(): void
     {
         $this->output->writeln('<fg=yellow>==></> Preparing Export Directory ...');
+        $exportDir = $this->config->getExportPath();
 
-        if (!$this->disk->isDirectory(
-            Config::buildPath($currentPath, "export"),
-        )) {
-            $this->disk->makeDirectory(
-                Config::buildPath(
-                    $currentPath,
-                    "export",
-                ),
-                0755,
-                true,
-            );
+        if (!$this->disk->isDirectory($exportDir)) {
+            $this->disk->makeDirectory($exportDir, 0755, true);
         }
     }
-
-
 
     public function isAbsolutePath($path)
     {
@@ -234,6 +204,4 @@ class BaseBuildCommand extends Command
         // A path starting with / or \ is absolute; anything else is relative.
         return ('/' === $path[0] || '\\' === $path[0]);
     }
-
-
 }

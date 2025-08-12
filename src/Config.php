@@ -2,94 +2,228 @@
 
 namespace Ibis;
 
+use Ibis\Config\Cover;
+use Ibis\Config\Document;
+use Ibis\Config\FileList;
+use Ibis\Config\Font;
+use Ibis\Config\Header;
+use Ibis\Config\Sample;
+use Ibis\Config\Toc;
 use Illuminate\Support\Str;
 
 class Config
 {
-    /**
-     * @var array
-     */
-    public $config;
+    private string $title = '';
 
-    public string $ibisConfigPath;
+    private string $author = '';
 
-    public $contentPath;
+    private string $assetsPath = 'assets';
 
-    public function __construct(public $workingPath = "")
-    {
-        if ($workingPath === "") {
-            $this->workingPath = "./";
-        } elseif (!is_dir($workingPath)) {
-            $this->workingPath = "./";
-        }
+    private string $contentPath = 'content';
 
-        $this->ibisConfigPath = self::buildPath($this->workingPath, 'ibis.php');
-        if (file_exists($this->ibisConfigPath)) {
-            $this->config = require $this->ibisConfigPath;
-        } else {
-            throw new \Exception("The file " . $this->ibisConfigPath . " doesn't exists.");
-        }
+    private string $exportPath = 'export';
 
-    }
-
-    public static function load($directory = ""): self
-    {
-        return new self($directory);
-    }
-
-    public static function buildPath(...$pathElements): string
-    {
-        //$paths = func_get_args();
-        $last_key = count($pathElements) - 1;
-        array_walk($pathElements, static function (&$val, $key) use ($last_key): void {
-            $val = match ($key) {
-                0 => rtrim($val, '/ '),
-                $last_key => ltrim($val, '/ '),
-                default => trim($val, '/ '),
-            };
-        });
-        $first = array_shift($pathElements);
-        $last = array_pop($pathElements);
-        $paths = array_filter($pathElements); // clean empty elements to prevent double slashes
-        array_unshift($paths, $first);
-        $paths[] = $last;
-
-        return implode('/', $paths);
-    }
-
-    public function setContentPath($directory = ""): bool
-    {
-        $this->contentPath = $directory;
-        if ($this->contentPath === "") {
-            $this->contentPath = self::buildPath($this->workingPath, "content");
-        }
-
-        return is_dir($this->contentPath);
-
-    }
+    private int $breakLevel = 0;
 
     /**
-     *
+     * @var array<Font>
      */
-    public function title()
+    private array $fonts = [];
+
+    private array $commonMark = [];
+
+    private Document $document;
+
+    private Toc $toc;
+
+    private Cover $cover;
+
+    private Header $header;
+
+    private Sample $sample;
+
+    private FileList $files;
+
+    public function title(string $title): self
     {
-        return $this->config['title'];
+        $this->title = $title;
+
+        return $this;
     }
 
-    /**
-     *
-     */
-    public function outputFileName()
+    public function author(string $author): self
     {
-        return Str::slug($this->title());
+        $this->author = $author;
+
+        return $this;
     }
 
-    /**
-     *
-     */
-    public function author()
+    public function assetsPath(string $assetsPath): self
     {
-        return $this->config['author'];
+        $this->assetsPath = $assetsPath;
+
+        return $this;
     }
 
+    public function contentPath(string $contentPath): self
+    {
+        $this->contentPath = $contentPath;
+
+        return $this;
+    }
+
+    public function exportPath(string $exportPath): self
+    {
+        $this->exportPath = $exportPath;
+
+        return $this;
+    }
+
+    public function breakLevel(int $breakLevel): self
+    {
+        $this->breakLevel = $breakLevel;
+
+        return $this;
+    }
+
+    public function addFont(Font $font): self
+    {
+        $this->fonts[] = $font;
+
+        return $this;
+    }
+
+    public function commonMark(array $commonMark): self
+    {
+        $this->commonMark = $commonMark;
+
+        return $this;
+    }
+
+    public function document(Document $document): self
+    {
+        $this->document = $document;
+
+        return $this;
+    }
+
+    public function toc(Toc $toc): self
+    {
+        $this->toc = $toc;
+
+        return $this;
+    }
+
+    public function cover(Cover $cover): self
+    {
+        $this->cover = $cover;
+
+        return $this;
+    }
+
+    public function header(Header $header): self
+    {
+        $this->header = $header;
+
+        return $this;
+    }
+
+    public function sample(Sample $sample): self
+    {
+        $this->sample = $sample;
+
+        return $this;
+    }
+
+    public function files(FileList $files): self
+    {
+        $this->files = $files;
+
+        return $this;
+    }
+
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    public function getAuthor(): string
+    {
+        return $this->author;
+    }
+
+    public function getAssetsPath(): string
+    {
+        return "./{$this->assetsPath}";
+    }
+
+    public function getContentPath(): string
+    {
+        return "./{$this->contentPath}";
+    }
+
+    public function getExportPath(): string
+    {
+        return "./{$this->exportPath}";
+    }
+
+    public function getBreakLevel(): int
+    {
+        return $this->breakLevel;
+    }
+
+    public function getFonts(): array
+    {
+        return $this->fonts;
+    }
+
+    public function getCommonMark(): array
+    {
+        return $this->commonMark;
+    }
+
+    public function getDocument(): Document
+    {
+        return $this->document;
+    }
+
+    public function getToc(): Toc
+    {
+        return $this->toc;
+    }
+
+    public function getCover(): Cover
+    {
+        return $this->cover;
+    }
+
+    public function getHeader(): Header
+    {
+        return $this->header;
+    }
+
+    public function getSample(): Sample
+    {
+        return $this->sample;
+    }
+
+    public function getFiles(): FileList
+    {
+        return $this->files;
+    }
+
+    public function outputFileName(): string
+    {
+        return Str::slug($this->title);
+    }
+
+    public function fontsDir(): string
+    {
+        return "{$this->assetsPath}/fonts";
+    }
+
+    public function imagesDir(): string
+    {
+        return "{$this->assetsPath}/images";
+    }
 }
