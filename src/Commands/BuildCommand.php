@@ -3,6 +3,7 @@
 namespace Ibis\Commands;
 
 use Exception;
+use Ibis\Concerns\EpubRenderer;
 use Ibis\Concerns\HtmlRenderer;
 use Ibis\Concerns\PathManager;
 use Ibis\Config;
@@ -23,6 +24,7 @@ use function Laravel\Prompts\table;
 
 class BuildCommand extends Command
 {
+    use EpubRenderer;
     use HtmlRenderer;
     use PathManager;
 
@@ -66,12 +68,12 @@ class BuildCommand extends Command
         foreach ($outputFormats as $outputFormat) {
             try {
                 $outputFormat = OutputFormat::from($outputFormat);
-                info("✨ Building the {$outputFormat->label()} file...");
+                info("✨ Building the {$outputFormat->label()} file ...");
 
                 $this->{$outputFormat->builderMethod()}($outputFormat);
                 $createdFiles[$outputFormat->label()] = "{$this->config->getExportPath()}/{$this->config->outputFileName()}{$outputFormat->extension()}";
 
-                info('The file was generated successfully');
+                info('The file was generated successfully!');
                 info('-----');
             } catch (Exception $exception) {
                 error("Failed to build the {$outputFormat->label()} file - {$exception->getMessage()}");

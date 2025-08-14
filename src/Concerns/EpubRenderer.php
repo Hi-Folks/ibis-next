@@ -1,72 +1,31 @@
 <?php
 
-namespace Ibis\Commands;
+namespace Ibis\Concerns;
 
+use Ibis\Enums\OutputFormat;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use PHPePub\Core\EPub;
-use Symfony\Component\Console\Command\Command;
 
-class BuildEpubCommand extends BaseBuildCommand
+use function Laravel\Prompts\info;
+
+trait EpubRenderer
 {
-    /**
-     * Configure the command.
-     *
-     * @return void
-     */
-    protected function configure()
+    protected function buildEpubFile(OutputFormat $outputFormat): void
     {
-        $this->setName('epub')
-            ->setDescription('Generate the book in EPUB format.');
-    }
-
-    /**
-     * Execute the command.
-     *
-     * @throws FileNotFoundException
-     */
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $this->output = $output;
-        $this->output->writeln('<info>✨ Building EPUB file ✨</info>');
-
-        if (!$this->preExecute($input, $output)) {
-            return Command::INVALID;
-        }
-
-        $this->ensureExportDirectoryExists();
         $this->config->breakLevel(1);
 
-        $result = $this->buildEpub($this->buildHtml(true));
-        $this->output->writeln('');
-
-        if ($result) {
-            $this->output->writeln('<info>Book Built Successfully!</info>');
-        } else {
-            $this->output->writeln('<error>Book Built Failed!</error>');
-        }
-
-        return Command::SUCCESS;
-    }
-
-    /**
-     * @throws FileNotFoundException
-     */
-    protected function buildEpub(Collection $chapters): bool
-    {
+        $chapters = $this->buildHtml(true);
         $content_start =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        . "<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\">\n"
-        . "<head>"
-        . "<meta http-equiv=\"Default-Style\" content=\"text/html; charset=utf-8\" />\n"
-        . "<link rel=\"stylesheet\" type=\"text/css\" href=\"codeblock.css\" />\n"
-        . "<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\" />\n"
-        . "<title>{$this->config->getTitle()}</title>\n"
-        . "</head>\n"
-        . "<body>\n";
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            . "<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\">\n"
+            . "<head>"
+            . "<meta http-equiv=\"Default-Style\" content=\"text/html; charset=utf-8\" />\n"
+            . "<link rel=\"stylesheet\" type=\"text/css\" href=\"codeblock.css\" />\n"
+            . "<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\" />\n"
+            . "<title>{$this->config->getTitle()}</title>\n"
+            . "</head>\n"
+            . "<body>\n";
         $content_end = "</body></html>";
 
         $book = new EPub(EPub::BOOK_VERSION_EPUB3, "en", EPub::DIRECTION_LEFT_TO_RIGHT);
@@ -94,7 +53,7 @@ class BuildEpubCommand extends BaseBuildCommand
         $coverConfig = $this->config->getCover();
         $pathCoverImage = "{$this->config->getAssetsPath()}/{$coverConfig->getSrc()}";
         if ($this->disk->isFile($pathCoverImage)) {
-            $this->output->writeln("<fg=yellow>==></> Adding Book Cover {$pathCoverImage} ...");
+            info("-> ✨ Adding Book Cover {$pathCoverImage} ...");
             $book->setCoverImage('cover.jpg', file_get_contents($pathCoverImage), mime_content_type($pathCoverImage));
         }
 
@@ -108,7 +67,7 @@ class BuildEpubCommand extends BaseBuildCommand
 
 
         foreach ($chapters as $key => $chapter) {
-            $this->output->writeln('<fg=yellow>==></> ❇️ ' . $chapter["mdfile"] . ' ...');
+            info("-> ❇️ {$chapter["mdfile"]} ...");
 
             // fixing html
             $chapter["html"] = str_replace("</span> <span", "</span>&nbsp;<span", $chapter["html"]);
@@ -144,11 +103,8 @@ class BuildEpubCommand extends BaseBuildCommand
         $book->buildTOC(title: "Index", addReferences: false);
         $book->finalize();
 
-        $epubFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}.epub";
+        $epubFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}{$outputFormat->extension()}";
         @$book->saveBook($epubFilename);
-
-        $this->output->writeln("<fg=green>==></> EPUB file {$epubFilename} created");
-        return true;
     }
 
     /**

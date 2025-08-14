@@ -41,7 +41,7 @@ trait HtmlRenderer
         }
 
         $outputHtml = str_replace("{{\$body}}", $html, $outputHtml);
-        $htmlFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}.html";
+        $htmlFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}{$outputFormat->extension()}";
         file_put_contents($htmlFilename, $outputHtml);
     }
 
