@@ -27,7 +27,5 @@ jobs:
       - name: test Ibis Next execution
         run: |
           mkdir export
-          ./ibis-next init
-          ./ibis-next pdf
-          ./ibis-next epub
-          ./ibis-next html
+          ./ibis-next init --default
+          ./ibis-next build --epub --html --pdf --pdf-dark
