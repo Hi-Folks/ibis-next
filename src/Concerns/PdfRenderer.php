@@ -9,12 +9,17 @@ use Illuminate\Support\Arr;
 use Mpdf\Config\ConfigVariables;
 use Mpdf\Config\FontVariables;
 use Mpdf\Mpdf;
+use Mpdf\MpdfException;
 
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\warning;
 
 trait PdfRenderer
 {
+    /**
+     * @throws MpdfException
+     * @throws FileNotFoundException
+     */
     protected function buildPdfFile(OutputFormat $outputFormat): string
     {
         $themeName = str_replace('pdf-', '', $outputFormat->value);

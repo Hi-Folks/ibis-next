@@ -4,15 +4,12 @@ namespace Ibis\Commands;
 
 use Exception;
 use Ibis\Concerns\EpubRenderer;
+use Ibis\Concerns\HasConfig;
 use Ibis\Concerns\HtmlRenderer;
 use Ibis\Concerns\PathManager;
 use Ibis\Concerns\PdfRenderer;
-use Ibis\Config;
 use Ibis\Enums\OutputFormat;
-use Ibis\Exceptions\InvalidConfigFileException;
-use Ibis\Ibis;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Illuminate\Filesystem\Filesystem;
 use Mpdf\MpdfException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,35 +18,22 @@ use Symfony\Component\Console\Output\OutputInterface;
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\multiselect;
-use function Laravel\Prompts\table;
 
 class BuildCommand extends Command
 {
     use EpubRenderer;
+    use HasConfig;
     use HtmlRenderer;
     use PathManager;
     use PdfRenderer;
 
-    protected Filesystem $disk;
-
-    protected string $currentPath;
-
-    protected Config $config;
-
-    /**
-     * Configure the command.
-     *
-     * @return void
-     */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('build')
             ->setDescription('Generates the book.');
     }
 
     /**
-     * Execute the command.
-     *
      * @throws FileNotFoundException
      * @throws MpdfException
      */
@@ -88,48 +72,5 @@ class BuildCommand extends Command
         $this->showResultTable($createdFiles);
 
         return Command::SUCCESS;
-    }
-
-    protected function init(): bool
-    {
-        info('Ibis Next - Book Build');
-
-        $this->disk = new Filesystem();
-
-        try {
-            $this->config = Ibis::loadConfig();
-        } catch (InvalidConfigFileException $exception) {
-            error($exception->getMessage());
-            info('Did you run `ibis-next init`?');
-
-            return false;
-        }
-
-        info('✨ Loading config/assets from current directory...');
-        info('✨ Loading config file from: ./ibis.php ...');
-
-        $contentPath = $this->config->getContentPath();
-        if (!file_exists($contentPath) || !is_dir($contentPath)) {
-            error("Error, check if {$contentPath} exists");
-
-            return false;
-        }
-
-        info("✨ Loading content from: {$contentPath}...");
-
-        return true;
-    }
-
-    protected function showResultTable(array $createdFiles): void
-    {
-        $formatted = [];
-        foreach ($createdFiles as $outputFormat => $file) {
-            $formatted[] = [$outputFormat, $file];
-        }
-
-        table(
-            headers: ['OUTPUT FORMAT', 'FILE'],
-            rows: $formatted,
-        );
     }
 }

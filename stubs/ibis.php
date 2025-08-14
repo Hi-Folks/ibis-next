@@ -33,7 +33,7 @@ $header = Ibis::header()
 $sample = Ibis::sample()
     ->text('This is a sample from "Ibis Next: create your eBooks with Markdown" by Roberto Butti.<br>For more information, <a href="https://github.com/Hi-Folks/ibis-next">Click here</a>.')
     ->addPages(1, 7)
-    ->addPages(15, 15);
+    ->addPages(12, 12);
 
 $files = Ibis::files();
 //    ->addFile('routing.md')

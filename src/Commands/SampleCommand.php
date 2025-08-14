@@ -2,68 +2,98 @@
 
 namespace Ibis\Commands;
 
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Ibis\Concerns\HasConfig;
 use Mpdf\Mpdf;
 use Mpdf\MpdfException;
+use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
+use setasign\Fpdi\PdfParser\PdfParserException;
+use setasign\Fpdi\PdfParser\Type\PdfTypeException;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class SampleCommand extends BaseBuildCommand
+use function Laravel\Prompts\error;
+use function Laravel\Prompts\info;
+use function Laravel\Prompts\multiselect;
+use function Laravel\Prompts\warning;
+
+class SampleCommand extends Command
 {
-    /**
-     * Configure the command.
-     *
-     * @return void
-     */
-    protected function configure()
+    use HasConfig;
+
+    protected function configure(): void
     {
         $this->setName('sample')
-            ->addArgument('theme', InputArgument::OPTIONAL, 'The name of the theme', 'light')
             ->setDescription('Generate a sample from the PDF.');
     }
 
-    /**
-     * Execute the command.
-     *
-     * @throws FileNotFoundException
-     * @throws MpdfException
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if (!$this->preExecute($input, $output)) {
+        if (!$this->init('Generate Sample')) {
             return Command::INVALID;
         }
 
-        $themeName = $input->getArgument('theme');
-        $pdfFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}-{$themeName}.pdf";
+        $themeName = multiselect(
+            label: 'Which PDF theme would you like to create a sample from?',
+            options: [
+                'light' => 'Light',
+                'dark' => 'Dark',
+            ],
+            required: true,
+        );
 
-        if (!$this->disk->isFile($pdfFilename)) {
-            $this->output->writeln("<fg=red> ⚠️  File {$pdfFilename} not exists (i need it for creating the sample)</>");
-            $this->output->writeln('<fg=yellow> Suggestion : try to execute `ibis-next pdf` before generating a sample</>');
-            return Command::FAILURE;
+        $createdFiles = [];
+        foreach ($themeName as $theme) {
+            $filename = $this->buildSampleFile($theme);
+            if (is_null($filename)) {
+                return command::FAILURE;
+            }
+
+            $createdFiles[strtoupper($theme)] = $filename;
         }
 
-        $mpdf = new Mpdf();
-        $mpdf->setSourceFile($pdfFilename);
+        info('✅ Done!');
+        info('These are the generated files.');
+        $this->showResultTable($createdFiles);
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * @throws MpdfException
+     * @throws CrossReferenceException
+     * @throws PdfParserException
+     * @throws PdfTypeException
+     */
+    protected function buildSampleFile(string $theme): ?string
+    {
+        $pdfFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}-{$theme}.pdf";
+
+        if (!$this->disk->isFile($pdfFilename)) {
+            error("⚠️  File {$pdfFilename} not exists (it's needed for creating the sample)");
+            warning('Suggestion : try to execute `ibis-next build` before generating a sample');
+            return null;
+        }
+
+        $pdf = new Mpdf();
+        $pdf->setSourceFile($pdfFilename);
 
         foreach ($this->config->getSample()->pages() as $range) {
             foreach (range($range[0], $range[1]) as $page) {
-                $mpdf->useTemplate($mpdf->importPage($page));
-                $mpdf->AddPage();
+                $pdf->useTemplate($pdf->importPage($page));
+                $pdf->AddPage();
             }
         }
 
-        $mpdf->WriteHTML('<p style="text-align: center; font-size: 16px; line-height: 40px;">' . $this->config->getSample()->getText() . '</p>');
-        $sampleFileName = "{$this->config->getExportPath()}/sample-{$this->config->outputFileName()}-{$themeName}.pdf";
-        $this->output->writeln('<fg=yellow>==></> Writing Sample PDF To Disk ...');
-        $mpdf->Output($sampleFileName);
+        $pdf->WriteHTML('<p style="text-align: center; font-size: 16px; line-height: 40px;">' . $this->config->getSample()->getText() . '</p>');
+        $filename = "{$this->config->getExportPath()}/sample-{$this->config->outputFileName()}-{$theme}.pdf";
 
-        $this->output->writeln("<fg=green> ✅ File {$sampleFileName} created</>");
-        $this->output->writeln('');
-        $this->output->writeln("✨✨ {$mpdf->page} PDF pages ✨✨");
+        info('-> Writing Sample PDF To Disk ...');
+        $pdf->Output($filename);
 
-        return Command::SUCCESS;
+        info("✅ File {$filename} created");
+        info("✨✨ {$pdf->page} PDF pages ✨✨");
+
+        return $filename;
     }
 }

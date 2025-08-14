@@ -5,9 +5,7 @@ namespace Ibis\Commands;
 use Ibis\Config;
 use Ibis\Exceptions\InvalidConfigFileException;
 use Ibis\Ibis;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\Filesystem;
-use Mpdf\MpdfException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -28,23 +26,12 @@ class InitCommand extends Command
 
     private ?Filesystem $disk = null;
 
-    /**
-     * Configure the command.
-     *
-     * @return void
-     */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('init')
             ->setDescription('Initialize a new project in the working directory (current dir by default).');
     }
 
-    /**
-     * Execute the command.
-     *
-     * @throws FileNotFoundException
-     * @throws MpdfException
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         info('Ibis Next - Init');

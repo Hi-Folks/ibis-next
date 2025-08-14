@@ -16,7 +16,7 @@ trait PathManager
         }
     }
 
-    protected function isAbsolutePath($path)
+    protected function isAbsolutePath(string $path): bool
     {
         /*
          * Check to see if the path is a stream and check to see if its an actual
