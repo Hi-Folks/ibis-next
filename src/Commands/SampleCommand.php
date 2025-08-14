@@ -24,6 +24,9 @@ class SampleCommand extends Command
     protected function configure(): void
     {
         $this->setName('sample')
+            ->addOption(name: 'default', description: 'Generates an .pdf sample of the book using the light theme')
+            ->addOption(name: 'light', description: 'Generates an .pdf sample of the book using the light theme')
+            ->addOption(name: 'dark', description: 'Generates an .pdf sample of the book using the dark theme')
             ->setDescription('Generate a sample from the PDF.');
     }
 
@@ -33,17 +36,20 @@ class SampleCommand extends Command
             return Command::INVALID;
         }
 
-        $themeName = multiselect(
-            label: 'Which PDF theme would you like to create a sample from?',
-            options: [
-                'light' => 'Light',
-                'dark' => 'Dark',
-            ],
-            required: true,
-        );
+        $themes = $this->buildThemesFromCommand($input);
+        if ($themes === []) {
+            $themes = multiselect(
+                label: 'Which PDF theme would you like to create a sample from?',
+                options: [
+                    'light' => 'Light',
+                    'dark' => 'Dark',
+                ],
+                required: true,
+            );
+        }
 
         $createdFiles = [];
-        foreach ($themeName as $theme) {
+        foreach ($themes as $theme) {
             $filename = $this->buildSampleFile($theme);
             if (is_null($filename)) {
                 return command::FAILURE;
@@ -95,5 +101,22 @@ class SampleCommand extends Command
         info("✨✨ {$pdf->page} PDF pages ✨✨");
 
         return $filename;
+    }
+
+    private function buildThemesFromCommand(InputInterface $input): array
+    {
+        $defaultFlag = $input->getOption('default');
+        $lightFlag = $input->getOption('light');
+        $darkFlag = $input->getOption('dark');
+
+        $themes = [];
+        if ($defaultFlag || $lightFlag) {
+            $themes[] = 'light';
+        }
+        if ($darkFlag) {
+            $themes[] = 'dark';
+        }
+
+        return $themes;
     }
 }
