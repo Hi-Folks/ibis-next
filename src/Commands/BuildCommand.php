@@ -30,6 +30,11 @@ class BuildCommand extends Command
     protected function configure(): void
     {
         $this->setName('build')
+            ->addOption(name: 'epub', description: 'Generates an .epub version of the book')
+            ->addOption(name: 'html', description: 'Generates an .html version of the book')
+            ->addOption(name: 'pdf', description: 'Generates an .pdf version of the book using the light theme')
+            ->addOption(name: 'pdf-light', description: 'Generates an .pdf version of the book using the light theme')
+            ->addOption(name: 'pdf-dark', description: 'Generates an .pdf version of the book using the dark theme')
             ->setDescription('Generates the book.');
     }
 
@@ -43,11 +48,14 @@ class BuildCommand extends Command
             return Command::INVALID;
         }
 
-        $outputFormats = multiselect(
-            label: 'Which output formats you want to build?',
-            options: OutputFormat::list(),
-            required: true,
-        );
+        $outputFormats = $this->buildOutputFormatsFromCommand($input);
+        if ($outputFormats === []) {
+            $outputFormats = multiselect(
+                label: 'Which output formats you want to build?',
+                options: OutputFormat::list(),
+                required: true,
+            );
+        }
 
         $this->ensureExportDirectoryExists();
         $createdFiles = [];
@@ -72,5 +80,30 @@ class BuildCommand extends Command
         $this->showResultTable($createdFiles);
 
         return Command::SUCCESS;
+    }
+
+    private function buildOutputFormatsFromCommand(InputInterface $input): array
+    {
+        $epubFlag = $input->getOption('epub');
+        $htmlFlag = $input->getOption('html');
+        $pdfFlag = $input->getOption('pdf');
+        $pdfLightFlag = $input->getOption('pdf-light');
+        $pdfDarkFlag = $input->getOption('pdf-dark');
+
+        $outputFormats = [];
+        if ($epubFlag) {
+            $outputFormats[] = OutputFormat::EPUB->value;
+        }
+        if ($htmlFlag) {
+            $outputFormats[] = OutputFormat::HTML->value;
+        }
+        if ($pdfFlag || $pdfLightFlag) {
+            $outputFormats[] = OutputFormat::PDF_LIGHT->value;
+        }
+        if ($pdfDarkFlag) {
+            $outputFormats[] = OutputFormat::PDF_DARK->value;
+        }
+
+        return $outputFormats;
     }
 }
