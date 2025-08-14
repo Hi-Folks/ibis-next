@@ -6,6 +6,7 @@ use Exception;
 use Ibis\Concerns\EpubRenderer;
 use Ibis\Concerns\HtmlRenderer;
 use Ibis\Concerns\PathManager;
+use Ibis\Concerns\PdfRenderer;
 use Ibis\Config;
 use Ibis\Enums\OutputFormat;
 use Ibis\Exceptions\InvalidConfigFileException;
@@ -27,6 +28,7 @@ class BuildCommand extends Command
     use EpubRenderer;
     use HtmlRenderer;
     use PathManager;
+    use PdfRenderer;
 
     protected Filesystem $disk;
 
@@ -70,9 +72,7 @@ class BuildCommand extends Command
                 $outputFormat = OutputFormat::from($outputFormat);
                 info("✨ Building the {$outputFormat->label()} file ...");
 
-                $this->{$outputFormat->builderMethod()}($outputFormat);
-                $createdFiles[$outputFormat->label()] = "{$this->config->getExportPath()}/{$this->config->outputFileName()}{$outputFormat->extension()}";
-
+                $createdFiles[$outputFormat->label()] = $this->{$outputFormat->builderMethod()}($outputFormat);
                 info('The file was generated successfully!');
                 info('-----');
             } catch (Exception $exception) {

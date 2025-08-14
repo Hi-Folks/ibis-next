@@ -11,7 +11,7 @@ use function Laravel\Prompts\info;
 
 trait EpubRenderer
 {
-    protected function buildEpubFile(OutputFormat $outputFormat): void
+    protected function buildEpubFile(OutputFormat $outputFormat): string
     {
         $this->config->breakLevel(1);
 
@@ -103,8 +103,10 @@ trait EpubRenderer
         $book->buildTOC(title: "Index", addReferences: false);
         $book->finalize();
 
-        $epubFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}{$outputFormat->extension()}";
-        @$book->saveBook($epubFilename);
+        $filename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}{$outputFormat->extension()}";
+        @$book->saveBook($filename);
+
+        return $filename;
     }
 
     /**

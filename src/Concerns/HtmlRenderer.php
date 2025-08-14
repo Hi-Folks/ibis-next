@@ -25,7 +25,7 @@ use function Laravel\Prompts\info;
 
 trait HtmlRenderer
 {
-    protected function buildHtmlFile(OutputFormat $outputFormat): void
+    protected function buildHtmlFile(OutputFormat $outputFormat): string
     {
         $this->config->breakLevel(1);
 
@@ -41,8 +41,10 @@ trait HtmlRenderer
         }
 
         $outputHtml = str_replace("{{\$body}}", $html, $outputHtml);
-        $htmlFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}{$outputFormat->extension()}";
-        file_put_contents($htmlFilename, $outputHtml);
+        $filename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}{$outputFormat->extension()}";
+        file_put_contents($filename, $outputHtml);
+
+        return $filename;
     }
 
     protected function buildHtml(bool $extractImages = false): Collection
