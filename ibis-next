@@ -2,6 +2,7 @@
 <?php
 
 use Ibis\Commands\BuildCommand;
+use Ibis\Commands\ContentMetrics;
 use Ibis\Commands\InitCommand;
 use Ibis\Commands\SampleCommand;
 use Ibis\Commands\SortContentCommand;
@@ -23,5 +24,6 @@ $app->add(new InitCommand());
 $app->add(new BuildCommand());
 $app->add(new SampleCommand());
 $app->add(new SortContentCommand());
+$app->add(new ContentMetrics());
 
 $app->run();
