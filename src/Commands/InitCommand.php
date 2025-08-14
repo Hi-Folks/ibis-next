@@ -11,6 +11,7 @@ use Mpdf\MpdfException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\note;
@@ -66,12 +67,7 @@ class InitCommand extends Command
                 required: true,
             );
 
-            $configContent = file_get_contents('./stubs/ibis.php');
-            $configContent = str_replace('{{BOOK_TITLE}}', $title, $configContent);
-            $configContent = str_replace('{{BOOK_AUTHOR}}', $author, $configContent);
-            $this->disk->put($ibisConfigPath, $configContent);
-
-            info('Config file created!');
+            $this->createConfigFile($ibisConfigPath, $title, $author);
         }
 
         try {
@@ -82,16 +78,39 @@ class InitCommand extends Command
             return Command::FAILURE;
         }
 
-        $contentPath = $this->config->getContentPath();
-        $assetsPath = $this->config->getAssetsPath();
-
-        if ($this->disk->isDirectory($assetsPath)) {
+        if ($this->disk->isDirectory($this->config->getAssetsPath())) {
             warning('Project is already initialized.');
 
             return Command::INVALID;
         }
 
         info('Creating needed files and directories...');
+        $this->createAssetsDirectory();
+        $this->createContentDirectory();
+
+        info('✅ Done!');
+        note(
+            "You can start building your content (markdown files) into the directory {$this->config->getContentPath()}"
+            . PHP_EOL
+            . "You can change the configuration, for example by changing the title, the cover etc. editing the file {$ibisConfigPath}",
+        );
+
+        return Command::SUCCESS;
+    }
+
+    private function createConfigFile(string $ibisConfigPath, string $title, string $author): void
+    {
+        $configContent = file_get_contents('./stubs/ibis.php');
+        $configContent = str_replace('{{BOOK_TITLE}}', $title, $configContent);
+        $configContent = str_replace('{{BOOK_AUTHOR}}', $author, $configContent);
+        $this->disk->put($ibisConfigPath, $configContent);
+
+        info('Config file created!');
+    }
+
+    private function createAssetsDirectory(): void
+    {
+        $assetsPath = $this->config->getAssetsPath();
         info("✨ Creating Assets directory at {$assetsPath}");
 
         $this->disk->makeDirectory($assetsPath);
@@ -120,18 +139,14 @@ class InitCommand extends Command
                 warning("File '{$asset}' not found. I will skip this file.");
             }
         }
+    }
 
+    private function createContentDirectory(): void
+    {
+        $contentPath = $this->config->getContentPath();
         info("✨ Creating Content directory at {$contentPath}");
 
         $this->disk->makeDirectory($contentPath);
         $this->disk->copyDirectory('./stubs/content', $contentPath);
-
-        info('✅ Done!');
-        note(
-            "You can start building your content (markdown files) into the directory {$contentPath}" . PHP_EOL .
-            "You can change the configuration, for example by changing the title, the cover etc. editing the file {$ibisConfigPath}",
-        );
-
-        return Command::SUCCESS;
     }
 }
