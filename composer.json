@@ -27,7 +27,6 @@
         "php": "^8.2",
         "ext-ctype": "*",
         "ext-dom": "*",
-        "ext-fileinfo": "*",
         "ext-filter": "*",
         "ext-gd": "*",
         "ext-json": "*",
