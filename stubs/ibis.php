@@ -40,8 +40,8 @@ $files = Ibis::files();
 //    ->addFile('artisan.md');
 
 return Ibis::config()
-    ->title('Ibis Next: create your eBooks from Markdown')
-    ->author('Roberto B.')
+    ->title('{{BOOK_TITLE}}')
+    ->author('{{BOOK_AUTHOR}}')
     ->document($document)
     ->toc($toc)
     ->cover($cover)
