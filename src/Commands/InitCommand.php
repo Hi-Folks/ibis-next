@@ -29,6 +29,7 @@ class InitCommand extends Command
     protected function configure(): void
     {
         $this->setName('init')
+            ->addOption(name: 'default', description: 'Creates the config with the default values')
             ->setDescription('Initialize a new project in the working directory (current dir by default).');
     }
 
@@ -42,17 +43,23 @@ class InitCommand extends Command
         if (file_exists($ibisConfigPath)) {
             info('Config file found, using info from it!');
         } else {
-            $title = text(
-                label: 'Which will be the book title?',
-                placeholder: self::DEFAULT_TITLE,
-                required: true,
-            );
+            $useDefault = $input->getOption('default');
 
-            $author = text(
-                label: 'What is the author name?',
-                placeholder: self::DEFAULT_AUTHOR,
-                required: true,
-            );
+            $title = $useDefault
+                ? self::DEFAULT_TITLE
+                : text(
+                    label: 'Which will be the book title?',
+                    placeholder: self::DEFAULT_TITLE,
+                    required: true,
+                );
+
+            $author = $useDefault
+                ? self::DEFAULT_AUTHOR
+                : text(
+                    label: 'What is the author name?',
+                    placeholder: self::DEFAULT_AUTHOR,
+                    required: true,
+                );
 
             $this->createConfigFile($ibisConfigPath, $title, $author);
         }
