@@ -8,6 +8,7 @@ use Ibis\Ibis;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function Laravel\Prompts\error;
@@ -29,16 +30,34 @@ class InitCommand extends Command
     protected function configure(): void
     {
         $this->setName('init')
+            ->setDescription('Initialize a new project in the working directory (current dir by default).')
             ->addOption(name: 'default', description: 'Creates the config with the default values')
-            ->setDescription('Initialize a new project in the working directory (current dir by default).');
+            ->addOption(
+                name: 'book-dir',
+                shortcut: 'd',
+                mode: InputOption::VALUE_OPTIONAL,
+                description: 'The base path where the book files will be created',
+                default: '',
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         info('Ibis Next - Init');
-
         $this->disk = new Filesystem();
-        $ibisConfigPath = './ibis.php';
+
+        $bookDir = $input->getOption('book-dir');
+        $basePath = Ibis::basePath();
+        $baseBookPath = Ibis::buildPath([$basePath, $bookDir]);
+
+        if (! file_exists($baseBookPath) || ! is_dir($baseBookPath)) {
+            warning("The path '{$baseBookPath}' does not exist or is not a directory.");
+            info("✨ Creating directory '{$baseBookPath}'...");
+
+            mkdir($baseBookPath, recursive: true);
+        }
+
+        $ibisConfigPath = Ibis::buildPath([$baseBookPath, 'ibis.php']);
 
         if (file_exists($ibisConfigPath)) {
             info('Config file found, using info from it!');
@@ -61,11 +80,11 @@ class InitCommand extends Command
                     required: true,
                 );
 
-            $this->createConfigFile($ibisConfigPath, $title, $author);
+            $this->createConfigFile($basePath, $ibisConfigPath, $title, $author);
         }
 
         try {
-            $this->config = Ibis::loadConfig();
+            $this->config = Ibis::loadConfig($basePath, $bookDir);
         } catch (InvalidConfigFileException $exception) {
             error($exception->getMessage());
 
@@ -79,8 +98,8 @@ class InitCommand extends Command
         }
 
         info('Creating needed files and directories...');
-        $this->createAssetsDirectory();
-        $this->createContentDirectory();
+        $this->createAssetsDirectory($basePath);
+        $this->createContentDirectory($basePath);
 
         info('✅ Done!');
         note(
@@ -92,9 +111,9 @@ class InitCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function createConfigFile(string $ibisConfigPath, string $title, string $author): void
+    private function createConfigFile(string $basePath, string $ibisConfigPath, string $title, string $author): void
     {
-        $configContent = file_get_contents('./stubs/ibis.php');
+        $configContent = file_get_contents(Ibis::buildPath([$basePath, 'stubs', 'ibis.php']));
         $configContent = str_replace('{{BOOK_TITLE}}', $title, $configContent);
         $configContent = str_replace('{{BOOK_AUTHOR}}', $author, $configContent);
         $this->disk->put($ibisConfigPath, $configContent);
@@ -102,7 +121,7 @@ class InitCommand extends Command
         info('Config file created!');
     }
 
-    private function createAssetsDirectory(): void
+    private function createAssetsDirectory(string $basePath): void
     {
         $assetsPath = $this->config->getAssetsPath();
         info("✨ Creating Assets directory at {$assetsPath}");
@@ -124,23 +143,23 @@ class InitCommand extends Command
             'images/ibis-next-setting-page-header.png',
         ];
 
-        $dirAssetsStubs = './stubs/assets';
+        $dirAssetsStubs = Ibis::buildPath([$basePath, 'stubs', 'assets']);
         foreach ($assetsToCopy as $asset) {
-            $assetStub = "{$dirAssetsStubs}/{$asset}";
+            $assetStub = Ibis::buildPath([$dirAssetsStubs, $asset]);
             if (file_exists($assetStub)) {
-                copy($assetStub, "{$assetsPath}/{$asset}");
+                copy($assetStub, Ibis::buildPath([$assetsPath, $asset]));
             } else {
                 warning("File '{$asset}' not found. I will skip this file.");
             }
         }
     }
 
-    private function createContentDirectory(): void
+    private function createContentDirectory(string $basePath): void
     {
         $contentPath = $this->config->getContentPath();
         info("✨ Creating Content directory at {$contentPath}");
 
         $this->disk->makeDirectory($contentPath);
-        $this->disk->copyDirectory('./stubs/content', $contentPath);
+        $this->disk->copyDirectory(Ibis::buildPath([$basePath, 'stubs', 'content']), $contentPath);
     }
 }

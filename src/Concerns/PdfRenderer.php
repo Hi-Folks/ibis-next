@@ -4,6 +4,7 @@ namespace Ibis\Concerns;
 
 use Ibis\Config\Font;
 use Ibis\Enums\OutputFormat;
+use Ibis\Ibis;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Arr;
 use Mpdf\Config\ConfigVariables;
@@ -59,7 +60,8 @@ trait PdfRenderer
         $pdf->SetMargins(400, 100, 12);
 
         $coverConfig = $this->config->getCover();
-        $pathCoverImage = "{$this->config->getAssetsPath()}/{$coverConfig->getSrc()}";
+        $pathCoverImage = Ibis::buildPath([$this->config->getAssetsPath(), $coverConfig->getSrc()]);
+        $htmlCover = Ibis::buildPath([$this->config->getAssetsPath(), 'cover.html']);
         if ($this->disk->isFile($pathCoverImage)) {
             info("-> ✨ Adding Book Cover {$pathCoverImage} ...");
 
@@ -75,13 +77,13 @@ HTML,
             );
 
             $pdf->AddPage();
-        } elseif ($this->disk->isFile("{$this->config->getAssetsPath()}/cover.html")) {
-            info("-> ✨ Adding Book Cover {$this->config->getAssetsPath()}/cover.html ...");
+        } elseif ($this->disk->isFile($htmlCover)) {
+            info("-> ✨ Adding Book Cover {$htmlCover} ...");
 
-            $pdf->WriteHTML($this->disk->get("{$this->config->getAssetsPath()}/cover.html"));
+            $pdf->WriteHTML($this->disk->get("{$htmlCover}"));
             $pdf->AddPage();
         } else {
-            warning("-> No '{$this->config->getAssetsPath()}/cover.jpg' File Found. Skipping ...");
+            warning("-> No '{$pathCoverImage}' File Found. Skipping ...");
         }
 
         $pdf->SetHTMLFooter('<div id="footer" style="text-align: center">{PAGENO}</div>');
@@ -111,7 +113,10 @@ HTML,
         info('-> Writing PDF To Disk ...');
         info("✨✨ {$pdf->page} PDF pages ✨✨");
 
-        $filename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}-{$themeName}{$outputFormat->extension()}";
+        $filename = Ibis::buildPath([
+            $this->config->getExportPath(),
+            "{$this->config->outputFileName()}-{$themeName}{$outputFormat->extension()}",
+        ]);
         $pdf->Output($filename);
 
         return $filename;
@@ -122,7 +127,7 @@ HTML,
      */
     private function getTheme(string $theme): string
     {
-        return $this->disk->get("{$this->config->getAssetsPath()}/theme-{$theme}.html");
+        return $this->disk->get(Ibis::buildPath([$this->config->getAssetsPath(), "theme-{$theme}.html"]));
     }
 
     private function fonts(array $fonts, array $fontData): array

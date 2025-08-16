@@ -3,6 +3,7 @@
 namespace Ibis\Commands;
 
 use Ibis\Concerns\HasConfig;
+use Ibis\Ibis;
 use Mpdf\Mpdf;
 use Mpdf\MpdfException;
 use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
@@ -10,6 +11,7 @@ use setasign\Fpdi\PdfParser\PdfParserException;
 use setasign\Fpdi\PdfParser\Type\PdfTypeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function Laravel\Prompts\error;
@@ -24,15 +26,22 @@ class SampleCommand extends Command
     protected function configure(): void
     {
         $this->setName('sample')
+            ->setDescription('Generate a sample from the PDF.')
             ->addOption(name: 'default', description: 'Generates an .pdf sample of the book using the light theme')
             ->addOption(name: 'light', description: 'Generates an .pdf sample of the book using the light theme')
             ->addOption(name: 'dark', description: 'Generates an .pdf sample of the book using the dark theme')
-            ->setDescription('Generate a sample from the PDF.');
+            ->addOption(
+                name: 'book-dir',
+                shortcut: 'd',
+                mode: InputOption::VALUE_OPTIONAL,
+                description: 'The base path where the book files will be created',
+                default: '',
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if (!$this->init('Generate Sample')) {
+        if (!$this->init('Generate Sample', $input->getOption('book-dir'))) {
             return Command::INVALID;
         }
 
@@ -73,7 +82,10 @@ class SampleCommand extends Command
      */
     protected function buildSampleFile(string $theme): ?string
     {
-        $pdfFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}-{$theme}.pdf";
+        $pdfFilename = Ibis::buildPath([
+            $this->config->getExportPath(),
+            "{$this->config->outputFileName()}-{$theme}.pdf",
+        ]);
 
         if (!$this->disk->isFile($pdfFilename)) {
             error("⚠️  File {$pdfFilename} not exists (it's needed for creating the sample)");
@@ -92,7 +104,10 @@ class SampleCommand extends Command
         }
 
         $pdf->WriteHTML('<p style="text-align: center; font-size: 16px; line-height: 40px;">' . $this->config->getSample()->getText() . '</p>');
-        $filename = "{$this->config->getExportPath()}/sample-{$this->config->outputFileName()}-{$theme}.pdf";
+        $filename = Ibis::buildPath([
+            $this->config->getExportPath(),
+            "sample-{$this->config->outputFileName()}-{$theme}.pdf",
+        ]);
 
         info('-> Writing Sample PDF To Disk ...');
         $pdf->Output($filename);

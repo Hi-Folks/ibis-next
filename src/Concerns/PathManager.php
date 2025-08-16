@@ -2,21 +2,21 @@
 
 namespace Ibis\Concerns;
 
-use function Laravel\Prompts\info;
+use Illuminate\Support\Str;
 
 trait PathManager
 {
-    protected function ensureExportDirectoryExists(): void
+    public static function basePath(): string
     {
-        info('Preparing export directory ...');
-        $exportDir = $this->config->getExportPath();
-
-        if (!$this->disk->isDirectory($exportDir)) {
-            $this->disk->makeDirectory($exportDir, 0755, true);
-        }
+        return file_exists(__DIR__ . '/../../autoload.php') ? '../../' : './';
     }
 
-    protected function isAbsolutePath(string $path): bool
+    public static function buildPath(array $pathFragments): string
+    {
+        return Str::deduplicate(implode('/', $pathFragments), '/');
+    }
+
+    public static function isAbsolutePath(string $path): bool
     {
         /*
          * Check to see if the path is a stream and check to see if its an actual

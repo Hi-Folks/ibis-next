@@ -6,6 +6,7 @@ use Ibis\Concerns\HasConfig;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function Laravel\Prompts\info;
@@ -18,7 +19,14 @@ class ContentMetrics extends Command
     protected function configure(): void
     {
         $this->setName('content:metrics')
-            ->setDescription('Calculates the word count for each file and for the book');
+            ->setDescription('Calculates the word count for each file and for the book')
+            ->addOption(
+                name: 'book-dir',
+                shortcut: 'd',
+                mode: InputOption::VALUE_OPTIONAL,
+                description: 'The base path where the book files will be created',
+                default: '',
+            );
     }
 
     /**
@@ -26,7 +34,7 @@ class ContentMetrics extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if (!$this->init('Content Metrics')) {
+        if (!$this->init('Content Metrics', $input->getOption('book-dir'))) {
             return Command::INVALID;
         }
 

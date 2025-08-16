@@ -17,14 +17,13 @@ trait HasConfig
 
     protected Config $config;
 
-    protected function init(string $commandLabel = 'Book Build'): bool
+    protected function init(string $commandLabel = 'Book Build', string $bookDir = ''): bool
     {
         info("Ibis Next - {$commandLabel}");
-
         $this->disk = new Filesystem();
 
         try {
-            $this->config = Ibis::loadConfig();
+            $this->config = Ibis::loadConfig(Ibis::basePath(), $bookDir);
         } catch (InvalidConfigFileException $exception) {
             error($exception->getMessage());
             info('Did you run `ibis-next init`?');
@@ -32,8 +31,7 @@ trait HasConfig
             return false;
         }
 
-        info('✨ Loading config/assets from current directory...');
-        info('✨ Loading config file from: ./ibis.php ...');
+        info("✨ Loading config file from: {$this->config->configFilePath()} ...");
 
         $contentPath = $this->config->getContentPath();
         if (!file_exists($contentPath) || !is_dir($contentPath)) {

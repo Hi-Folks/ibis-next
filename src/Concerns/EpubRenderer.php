@@ -3,6 +3,7 @@
 namespace Ibis\Concerns;
 
 use Ibis\Enums\OutputFormat;
+use Ibis\Ibis;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Arr;
 use PHPePub\Core\EPub;
@@ -51,7 +52,7 @@ trait EpubRenderer
         $cover .= $content_end;
 
         $coverConfig = $this->config->getCover();
-        $pathCoverImage = "{$this->config->getAssetsPath()}/{$coverConfig->getSrc()}";
+        $pathCoverImage = Ibis::buildPath([$this->config->getAssetsPath(), $coverConfig->getSrc()]);
         if ($this->disk->isFile($pathCoverImage)) {
             info("-> ✨ Adding Book Cover {$pathCoverImage} ...");
             $book->setCoverImage('cover.jpg', file_get_contents($pathCoverImage), mime_content_type($pathCoverImage));
@@ -83,8 +84,8 @@ trait EpubRenderer
                 }
 
                 $pathImage = $markdownPathImage;
-                if (! $this->isAbsolutePath($markdownPathImage)) {
-                    $pathImage = "{$this->config->getContentPath()}/{$markdownPathImage}";
+                if (! Ibis::isAbsolutePath($markdownPathImage)) {
+                    $pathImage = Ibis::buildPath([$this->config->getContentPath(), $markdownPathImage]);
                 }
 
                 if (!file_exists($pathImage)) {
@@ -103,7 +104,10 @@ trait EpubRenderer
         $book->buildTOC(title: "Index", addReferences: false);
         $book->finalize();
 
-        $filename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}{$outputFormat->extension()}";
+        $filename = Ibis::buildPath([
+            $this->config->getExportPath(),
+            "{$this->config->outputFileName()}{$outputFormat->extension()}",
+        ]);
         @$book->saveBook($filename);
 
         return $filename;
@@ -114,6 +118,6 @@ trait EpubRenderer
      */
     private function getStyle(string $themeName): string
     {
-        return $this->disk->get("{$this->config->getAssetsPath()}/{$themeName}.css");
+        return $this->disk->get(Ibis::buildPath([$this->config->getAssetsPath(), "{$themeName}.css"]));
     }
 }

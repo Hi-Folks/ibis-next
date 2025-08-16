@@ -2,6 +2,7 @@
 
 namespace Ibis;
 
+use Ibis\Concerns\PathManager;
 use Ibis\Config\Cover;
 use Ibis\Config\Document;
 use Ibis\Config\FileList;
@@ -10,10 +11,11 @@ use Ibis\Config\Header;
 use Ibis\Config\Sample;
 use Ibis\Config\Toc;
 use Ibis\Exceptions\InvalidConfigFileException;
+use Illuminate\Support\Str;
 
 class Ibis
 {
-    public Config $config;
+    use PathManager;
 
     public static function config(?string $configPath = null): Config
     {
@@ -25,13 +27,21 @@ class Ibis
     /**
      * @throws InvalidConfigFileException
      */
-    public static function loadConfig(): Config
+    public static function loadConfig(string $basePath, string $bookPath): Config
     {
-        $configPath = './ibis.php';
+        $configPath = Str::deduplicate(implode('/', [$basePath, $bookPath, 'ibis.php']), '/');
         if (!file_exists($configPath)) {
             throw InvalidConfigFileException::fileDoesNotExist($configPath);
         }
 
+        $config = self::requireConfigFile($configPath);
+
+        return $config->basePath($basePath)
+            ->bookPath($bookPath);
+    }
+
+    public static function requireConfigFile(string $configPath): Config
+    {
         return require $configPath;
     }
 

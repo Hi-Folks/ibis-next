@@ -3,6 +3,7 @@
 namespace Ibis\Concerns;
 
 use Ibis\Enums\OutputFormat;
+use Ibis\Ibis;
 use Ibis\Markdown\Extensions\Aside;
 use Ibis\Markdown\Extensions\AsideExtension;
 use Ibis\Markdown\Extensions\AsideRenderer;
@@ -29,7 +30,7 @@ trait HtmlRenderer
     {
         $this->config->breakLevel(1);
 
-        $template = $this->disk->get("{$this->config->getAssetsPath()}/theme-html.html");
+        $template = $this->disk->get(Ibis::buildPath([$this->config->getAssetsPath(), 'theme-html.html']));
         $outputHtml = str_replace("{{\$title}}", $this->config->getTitle(), $template);
         $outputHtml = str_replace("{{\$author}}", $this->config->getAuthor(), $outputHtml);
 
@@ -41,7 +42,10 @@ trait HtmlRenderer
         }
 
         $outputHtml = str_replace("{{\$body}}", $html, $outputHtml);
-        $filename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}{$outputFormat->extension()}";
+        $filename = Ibis::buildPath([
+            $this->config->getExportPath(),
+            "{$this->config->outputFileName()}{$outputFormat->extension()}",
+        ]);
         file_put_contents($filename, $outputHtml);
 
         return $filename;
@@ -81,7 +85,7 @@ trait HtmlRenderer
         if ($this->config->getFiles()->files() !== []) {
             foreach ($this->config->getFiles()->files() as $file) {
                 $fileList[] = $filefound;
-                $filefound = new SplFileInfo("{$this->config->getContentPath()}/{$file}}");
+                $filefound = new SplFileInfo(Ibis::buildPath([$this->config->getContentPath(), $file]));
             }
         } else {
             $fileList = $this->disk->allFiles($this->config->getContentPath());

@@ -17,6 +17,10 @@ class Config
 
     private string $author = '';
 
+    private string $basePath = './';
+
+    private string $bookPath = '';
+
     private string $assetsPath = 'assets';
 
     private string $contentPath = 'content';
@@ -54,6 +58,20 @@ class Config
     public function author(string $author): self
     {
         $this->author = $author;
+
+        return $this;
+    }
+
+    public function basePath(string $basePath): self
+    {
+        $this->basePath = $basePath;
+
+        return $this;
+    }
+
+    public function bookPath(string $bookPath): self
+    {
+        $this->bookPath = $bookPath;
 
         return $this;
     }
@@ -152,19 +170,29 @@ class Config
         return $this->author;
     }
 
+    public function getBasePath(): string
+    {
+        return $this->basePath;
+    }
+
+    public function getBookPath(): string
+    {
+        return Ibis::buildPath([$this->getBasePath(), $this->bookPath]);
+    }
+
     public function getAssetsPath(): string
     {
-        return "./{$this->assetsPath}";
+        return Ibis::buildPath([$this->getBookPath(), $this->assetsPath]);
     }
 
     public function getContentPath(): string
     {
-        return "./{$this->contentPath}";
+        return Ibis::buildPath([$this->getBookPath(), $this->contentPath]);
     }
 
     public function getExportPath(): string
     {
-        return "./{$this->exportPath}";
+        return Ibis::buildPath([$this->getBookPath(), $this->exportPath]);
     }
 
     public function getBreakLevel(): int
@@ -217,13 +245,18 @@ class Config
         return Str::slug($this->title);
     }
 
+    public function configFilePath(): string
+    {
+        return Ibis::buildPath([$this->getBookPath(), 'ibis.php']);
+    }
+
     public function fontsDir(): string
     {
-        return "{$this->assetsPath}/fonts";
+        return Ibis::buildPath([$this->getAssetsPath(), 'fonts']);
     }
 
     public function imagesDir(): string
     {
-        return "{$this->assetsPath}/images";
+        return Ibis::buildPath([$this->getAssetsPath(), 'images']);
     }
 }

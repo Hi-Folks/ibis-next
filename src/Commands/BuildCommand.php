@@ -6,13 +6,13 @@ use Exception;
 use Ibis\Concerns\EpubRenderer;
 use Ibis\Concerns\HasConfig;
 use Ibis\Concerns\HtmlRenderer;
-use Ibis\Concerns\PathManager;
 use Ibis\Concerns\PdfRenderer;
 use Ibis\Enums\OutputFormat;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Mpdf\MpdfException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function Laravel\Prompts\error;
@@ -24,18 +24,24 @@ class BuildCommand extends Command
     use EpubRenderer;
     use HasConfig;
     use HtmlRenderer;
-    use PathManager;
     use PdfRenderer;
 
     protected function configure(): void
     {
         $this->setName('build')
+            ->setDescription('Generates the book.')
             ->addOption(name: 'epub', description: 'Generates an .epub version of the book')
             ->addOption(name: 'html', description: 'Generates an .html version of the book')
             ->addOption(name: 'pdf', description: 'Generates an .pdf version of the book using the light theme')
             ->addOption(name: 'pdf-light', description: 'Generates an .pdf version of the book using the light theme')
             ->addOption(name: 'pdf-dark', description: 'Generates an .pdf version of the book using the dark theme')
-            ->setDescription('Generates the book.');
+            ->addOption(
+                name: 'book-dir',
+                shortcut: 'd',
+                mode: InputOption::VALUE_OPTIONAL,
+                description: 'The base path where the book files will be created',
+                default: '',
+            );
     }
 
     /**
@@ -44,7 +50,7 @@ class BuildCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if (!$this->init()) {
+        if (! $this->init(bookDir: $input->getOption('book-dir'))) {
             return Command::INVALID;
         }
 
@@ -105,5 +111,15 @@ class BuildCommand extends Command
         }
 
         return $outputFormats;
+    }
+
+    private function ensureExportDirectoryExists(): void
+    {
+        info('Preparing export directory ...');
+        $exportDir = $this->config->getExportPath();
+
+        if (!$this->disk->isDirectory($exportDir)) {
+            $this->disk->makeDirectory($exportDir, 0755, true);
+        }
     }
 }
