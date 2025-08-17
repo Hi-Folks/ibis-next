@@ -26,7 +26,7 @@ class SampleCommand extends Command
     protected function configure(): void
     {
         $this->setName('sample')
-            ->setDescription('Generate a sample from the PDF.')
+            ->setDescription('Generates a sample from the PDF')
             ->addOption(name: 'default', description: 'Generates an .pdf sample of the book using the light theme')
             ->addOption(name: 'light', description: 'Generates an .pdf sample of the book using the light theme')
             ->addOption(name: 'dark', description: 'Generates an .pdf sample of the book using the dark theme')

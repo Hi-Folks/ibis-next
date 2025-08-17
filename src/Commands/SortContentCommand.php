@@ -20,7 +20,7 @@ class SortContentCommand extends Command
     protected function configure(): void
     {
         $this->setName('content:sort')
-            ->setDescription('Sort the files in the content directory.')
+            ->setDescription('Sorts the files in the content directory')
             ->addOption(
                 name: 'book-dir',
                 shortcut: 'd',

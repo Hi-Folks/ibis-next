@@ -1,6 +1,6 @@
 {
-    "title": "Ibis Next: create your eBooks from Markdown",
-    "author": "Roberto B.",
+    "title": "{{BOOK_TITLE}}",
+    "author": "{{BOOK_AUTHOR}}",
     "document": {
         "width": 210,
         "height": 297,
@@ -32,7 +32,7 @@
         "text": "This is a sample from \"Ibis Next: create your eBooks with Markdown\" by Roberto Butti.<br>For more information, <a href=\"https://github.com/Hi-Folks/ibis-next\">Click here</a>.",
         "pages": [
             [1, 7],
-            [15, 15]
+            [12, 12]
         ]
     }
 }

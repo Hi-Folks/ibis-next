@@ -29,7 +29,7 @@ class BuildCommand extends Command
     protected function configure(): void
     {
         $this->setName('build')
-            ->setDescription('Generates the book.')
+            ->setDescription('Generates the book')
             ->addOption(name: 'epub', description: 'Generates an .epub version of the book')
             ->addOption(name: 'html', description: 'Generates an .html version of the book')
             ->addOption(name: 'pdf', description: 'Generates an .pdf version of the book using the light theme')

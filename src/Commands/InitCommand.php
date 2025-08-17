@@ -30,8 +30,9 @@ class InitCommand extends Command
     protected function configure(): void
     {
         $this->setName('init')
-            ->setDescription('Initialize a new project in the working directory (current dir by default).')
+            ->setDescription('Initializes a new project in the working directory (current dir by default)')
             ->addOption(name: 'default', description: 'Creates the config with the default values')
+            ->addOption(name: 'json', description: 'Uses a JSON file format for the config instead a PHP one')
             ->addOption(
                 name: 'book-dir',
                 shortcut: 'd',
@@ -57,7 +58,11 @@ class InitCommand extends Command
             mkdir($baseBookPath, recursive: true);
         }
 
-        $ibisConfigPath = Ibis::buildPath([$baseBookPath, 'ibis.php']);
+        $useJSONConfig = $input->getOption('json');
+        $ibisConfigPath = Ibis::buildPath([
+            $baseBookPath,
+            $useJSONConfig ? Ibis::JSON_CONFIG_FILE : Ibis::PHP_CONFIG_FILE,
+        ]);
 
         if (file_exists($ibisConfigPath)) {
             info('Config file found, using info from it!');
@@ -80,7 +85,7 @@ class InitCommand extends Command
                     required: true,
                 );
 
-            $this->createConfigFile($basePath, $ibisConfigPath, $title, $author);
+            $this->createConfigFile($basePath, $useJSONConfig, $ibisConfigPath, $title, $author);
         }
 
         try {
@@ -111,9 +116,18 @@ class InitCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function createConfigFile(string $basePath, string $ibisConfigPath, string $title, string $author): void
-    {
-        $configContent = file_get_contents(Ibis::buildPath([$basePath, 'stubs', 'ibis.php']));
+    private function createConfigFile(
+        string $basePath,
+        bool $useJSONConfig,
+        string $ibisConfigPath,
+        string $title,
+        string $author,
+    ): void {
+        $configContent = file_get_contents(Ibis::buildPath([
+            $basePath,
+            'stubs',
+            $useJSONConfig ? Ibis::JSON_CONFIG_FILE : Ibis::PHP_CONFIG_FILE,
+        ]));
         $configContent = str_replace('{{BOOK_TITLE}}', $title, $configContent);
         $configContent = str_replace('{{BOOK_AUTHOR}}', $author, $configContent);
         $this->disk->put($ibisConfigPath, $configContent);

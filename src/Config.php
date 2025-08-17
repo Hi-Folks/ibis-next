@@ -29,6 +29,8 @@ class Config
 
     private int $breakLevel = 0;
 
+    private bool $jsonConfig = false;
+
     /**
      * @var array<Font>
      */
@@ -100,6 +102,13 @@ class Config
     public function breakLevel(int $breakLevel): self
     {
         $this->breakLevel = $breakLevel;
+
+        return $this;
+    }
+
+    public function jsonConfig(bool $jsonConfig): self
+    {
+        $this->jsonConfig = $jsonConfig;
 
         return $this;
     }
@@ -200,6 +209,11 @@ class Config
         return $this->breakLevel;
     }
 
+    public function useJSONConfig(): bool
+    {
+        return $this->jsonConfig;
+    }
+
     public function getFonts(): array
     {
         return $this->fonts;
@@ -247,7 +261,10 @@ class Config
 
     public function configFilePath(): string
     {
-        return Ibis::buildPath([$this->getBookPath(), 'ibis.php']);
+        return Ibis::buildPath([
+            $this->getBookPath(),
+            $this->useJSONConfig() ? Ibis::JSON_CONFIG_FILE : Ibis::PHP_CONFIG_FILE,
+        ]);
     }
 
     public function fontsDir(): string

@@ -17,6 +17,13 @@ class Ibis
 {
     use PathManager;
 
+    public const JSON_CONFIG_FILE = 'ibis.json';
+
+    public const PHP_CONFIG_FILE = 'ibis.php';
+
+    /**
+     * @throws InvalidConfigFileException
+     */
     public static function config(?string $configPath = null): Config
     {
         return $configPath === null || $configPath === ''
@@ -29,8 +36,17 @@ class Ibis
      */
     public static function loadConfig(string $basePath, string $bookPath): Config
     {
-        $configPath = Str::deduplicate(implode('/', [$basePath, $bookPath, 'ibis.php']), '/');
-        if (!file_exists($configPath)) {
+        $configPath = Str::deduplicate(implode('/', [$basePath, $bookPath, Ibis::JSON_CONFIG_FILE]), '/');
+        if (file_exists($configPath)) {
+            $config = self::config($configPath);
+
+            return $config->basePath($basePath)
+                ->bookPath($bookPath)
+                ->jsonConfig(true);
+        }
+
+        $configPath = str_replace(Ibis::JSON_CONFIG_FILE, Ibis::PHP_CONFIG_FILE, $configPath);
+        if (! file_exists($configPath)) {
             throw InvalidConfigFileException::fileDoesNotExist($configPath);
         }
 
@@ -135,6 +151,7 @@ class Ibis
             $config->sample(self::buildSampleConfigFromArray($data['sample']));
         }
 
+        $config->files(new FileList());
         if (isset($data['files']) && is_array($data['files'])) {
             $config->files(self::buildFilesConfigFromArray($data['files']));
         }
