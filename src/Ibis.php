@@ -261,9 +261,9 @@ class Ibis
         if (isset($config['text'])) {
             $sample->text($config['text']);
         }
-        if (isset($config['pages']) && is_array($config['pages'])) {
-            foreach ($config['pages'] as $pageList) {
-                $sample->addPages($pageList[0], $pageList[1]);
+        if (isset($config['files']) && is_array($config['files'])) {
+            foreach ($config['files'] as $filename) {
+                $sample->addFile($filename);
             }
         }
 

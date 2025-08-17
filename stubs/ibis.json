@@ -30,9 +30,9 @@
     },
     "sample": {
         "text": "This is a sample from \"Ibis Next: create your eBooks with Markdown\" by Roberto Butti.<br>For more information, <a href=\"https://github.com/Hi-Folks/ibis-next\">Click here</a>.",
-        "pages": [
-            [1, 7],
-            [12, 12]
+        "files": [
+            "001-intro.md",
+            "003-initialize.md"
         ]
     }
 }

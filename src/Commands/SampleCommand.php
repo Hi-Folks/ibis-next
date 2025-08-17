@@ -3,18 +3,15 @@
 namespace Ibis\Commands;
 
 use Ibis\Concerns\HasConfig;
-use Ibis\Ibis;
-use Mpdf\Mpdf;
-use Mpdf\MpdfException;
-use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
-use setasign\Fpdi\PdfParser\PdfParserException;
-use setasign\Fpdi\PdfParser\Type\PdfTypeException;
+use Ibis\Concerns\HtmlRenderer;
+use Ibis\Concerns\PdfRenderer;
+use Ibis\Config\FileList;
+use Ibis\Enums\OutputFormat;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\warning;
@@ -22,6 +19,8 @@ use function Laravel\Prompts\warning;
 class SampleCommand extends Command
 {
     use HasConfig;
+    use HtmlRenderer;
+    use PdfRenderer;
 
     protected function configure(): void
     {
@@ -45,13 +44,25 @@ class SampleCommand extends Command
             return Command::INVALID;
         }
 
+        if ($this->config->getSample()->files() === []) {
+            warning("No sample files configured. Update your {$this->config->configFilePath()} file first and run again.");
+
+            return Command::FAILURE;
+        }
+
+        $fileList = new FileList();
+        foreach ($this->config->getSample()->files() as $file) {
+            $fileList->addFile($file);
+        }
+        $this->config->files($fileList);
+
         $themes = $this->buildThemesFromCommand($input);
         if ($themes === []) {
             $themes = multiselect(
                 label: 'Which PDF theme would you like to create a sample from?',
                 options: [
-                    'light' => 'Light',
-                    'dark' => 'Dark',
+                    'pdf-light' => 'Light',
+                    'pdf-dark' => 'Dark',
                 ],
                 required: true,
             );
@@ -59,7 +70,7 @@ class SampleCommand extends Command
 
         $createdFiles = [];
         foreach ($themes as $theme) {
-            $filename = $this->buildSampleFile($theme);
+            $filename = $this->buildPdfFile(OutputFormat::from($theme), true);
             if (is_null($filename)) {
                 return command::FAILURE;
             }
@@ -74,50 +85,6 @@ class SampleCommand extends Command
         return Command::SUCCESS;
     }
 
-    /**
-     * @throws MpdfException
-     * @throws CrossReferenceException
-     * @throws PdfParserException
-     * @throws PdfTypeException
-     */
-    protected function buildSampleFile(string $theme): ?string
-    {
-        $pdfFilename = Ibis::buildPath([
-            $this->config->getExportPath(),
-            "{$this->config->outputFileName()}-{$theme}.pdf",
-        ]);
-
-        if (!$this->disk->isFile($pdfFilename)) {
-            error("⚠️  File {$pdfFilename} not exists (it's needed for creating the sample)");
-            warning('Suggestion : try to execute `ibis-next build` before generating a sample');
-            return null;
-        }
-
-        $pdf = new Mpdf();
-        $pdf->setSourceFile($pdfFilename);
-
-        foreach ($this->config->getSample()->pages() as $range) {
-            foreach (range($range[0], $range[1]) as $page) {
-                $pdf->useTemplate($pdf->importPage($page));
-                $pdf->AddPage();
-            }
-        }
-
-        $pdf->WriteHTML('<p style="text-align: center; font-size: 16px; line-height: 40px;">' . $this->config->getSample()->getText() . '</p>');
-        $filename = Ibis::buildPath([
-            $this->config->getExportPath(),
-            "sample-{$this->config->outputFileName()}-{$theme}.pdf",
-        ]);
-
-        info('-> Writing Sample PDF To Disk ...');
-        $pdf->Output($filename);
-
-        info("✅ File {$filename} created");
-        info("✨✨ {$pdf->page} PDF pages ✨✨");
-
-        return $filename;
-    }
-
     private function buildThemesFromCommand(InputInterface $input): array
     {
         $defaultFlag = $input->getOption('default');
@@ -126,10 +93,10 @@ class SampleCommand extends Command
 
         $themes = [];
         if ($defaultFlag || $lightFlag) {
-            $themes[] = 'light';
+            $themes[] = 'pdf-light';
         }
         if ($darkFlag) {
-            $themes[] = 'dark';
+            $themes[] = 'pdf-dark';
         }
 
         return $themes;

@@ -84,8 +84,8 @@ trait HtmlRenderer
         $fileList = [];
         if ($this->config->getFiles()->files() !== []) {
             foreach ($this->config->getFiles()->files() as $file) {
-                $fileList[] = $filefound;
-                $filefound = new SplFileInfo(Ibis::buildPath([$this->config->getContentPath(), $file]));
+                $fileList[] = new SplFileInfo(Ibis::buildPath([$this->config->getContentPath(), $file]));
+
             }
         } else {
             $fileList = $this->disk->allFiles($this->config->getContentPath());

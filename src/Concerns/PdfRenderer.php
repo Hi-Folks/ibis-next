@@ -21,7 +21,7 @@ trait PdfRenderer
      * @throws MpdfException
      * @throws FileNotFoundException
      */
-    protected function buildPdfFile(OutputFormat $outputFormat): string
+    protected function buildPdfFile(OutputFormat $outputFormat, bool $isSample = false): string
     {
         $themeName = str_replace('pdf-', '', $outputFormat->value);
         $theme = $this->getTheme($themeName);
@@ -49,7 +49,7 @@ trait PdfRenderer
         $pdf->SetAuthor($this->config->getAuthor());
         $pdf->SetCreator($this->config->getAuthor());
         $pdf->SetBasePath(realpath($this->config->getContentPath()));
-
+        $pdf->SetMargins(400, 100, 12);
         $pdf->setAutoTopMargin = 'pad';
         $pdf->setAutoBottomMargin = 'pad';
 
@@ -57,33 +57,33 @@ trait PdfRenderer
         $pdf->h2toc = $tocLevels;
         $pdf->h2bookmarks = $tocLevels;
 
-        $pdf->SetMargins(400, 100, 12);
+        if (! $isSample) {
+            $coverConfig = $this->config->getCover();
+            $pathCoverImage = Ibis::buildPath([$this->config->getAssetsPath(), $coverConfig->getSrc()]);
+            $htmlCover = Ibis::buildPath([$this->config->getAssetsPath(), 'cover.html']);
+            if ($this->disk->isFile($pathCoverImage)) {
+                info("-> ✨ Adding Book Cover {$pathCoverImage} ...");
 
-        $coverConfig = $this->config->getCover();
-        $pathCoverImage = Ibis::buildPath([$this->config->getAssetsPath(), $coverConfig->getSrc()]);
-        $htmlCover = Ibis::buildPath([$this->config->getAssetsPath(), 'cover.html']);
-        if ($this->disk->isFile($pathCoverImage)) {
-            info("-> ✨ Adding Book Cover {$pathCoverImage} ...");
-
-            $coverPosition = $coverConfig->positionStyle();
-            $coverDimensions = $coverConfig->dimensionsStyle();
-            $coverImageAbsPath = realpath($pathCoverImage);
-            $pdf->WriteHTML(
-                <<<HTML
+                $coverPosition = $coverConfig->positionStyle();
+                $coverDimensions = $coverConfig->dimensionsStyle();
+                $coverImageAbsPath = realpath($pathCoverImage);
+                $pdf->WriteHTML(
+                    <<<HTML
 <div style="{$coverPosition}">
     <img src="{$coverImageAbsPath}" style="{$coverDimensions}"/>
 </div>
 HTML,
-            );
+                );
 
-            $pdf->AddPage();
-        } elseif ($this->disk->isFile($htmlCover)) {
-            info("-> ✨ Adding Book Cover {$htmlCover} ...");
+                $pdf->AddPage();
+            } elseif ($this->disk->isFile($htmlCover)) {
+                info("-> ✨ Adding Book Cover {$htmlCover} ...");
 
-            $pdf->WriteHTML($this->disk->get("{$htmlCover}"));
-            $pdf->AddPage();
-        } else {
-            warning("-> No '{$pathCoverImage}' File Found. Skipping ...");
+                $pdf->WriteHTML($this->disk->get("{$htmlCover}"));
+                $pdf->AddPage();
+            } else {
+                warning("-> No '{$pathCoverImage}' File Found. Skipping ...");
+            }
         }
 
         $pdf->SetHTMLFooter('<div id="footer" style="text-align: center">{PAGENO}</div>');
@@ -113,9 +113,14 @@ HTML,
         info('-> Writing PDF To Disk ...');
         info("✨✨ {$pdf->page} PDF pages ✨✨");
 
+        if ($isSample) {
+            $pdf->WriteHTML('<p style="text-align: center; font-size: 16px; line-height: 40px;">' . $this->config->getSample()->getText() . '</p>');
+        }
+
+        $baseName = "{$this->config->outputFileName()}-{$themeName}{$outputFormat->extension()}";
         $filename = Ibis::buildPath([
             $this->config->getExportPath(),
-            "{$this->config->outputFileName()}-{$themeName}{$outputFormat->extension()}",
+            $isSample ? "sample-{$baseName}" : $baseName,
         ]);
         $pdf->Output($filename);
 
