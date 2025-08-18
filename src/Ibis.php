@@ -2,6 +2,7 @@
 
 namespace Ibis;
 
+use Ibis\Concerns\PathManager;
 use Ibis\Config\Cover;
 use Ibis\Config\Document;
 use Ibis\Config\FileList;
@@ -10,11 +11,19 @@ use Ibis\Config\Header;
 use Ibis\Config\Sample;
 use Ibis\Config\Toc;
 use Ibis\Exceptions\InvalidConfigFileException;
+use Illuminate\Support\Str;
 
 class Ibis
 {
-    public Config $config;
+    use PathManager;
 
+    public const JSON_CONFIG_FILE = 'ibis.json';
+
+    public const PHP_CONFIG_FILE = 'ibis.php';
+
+    /**
+     * @throws InvalidConfigFileException
+     */
     public static function config(?string $configPath = null): Config
     {
         return $configPath === null || $configPath === ''
@@ -25,13 +34,30 @@ class Ibis
     /**
      * @throws InvalidConfigFileException
      */
-    public static function loadConfig(): Config
+    public static function loadConfig(string $basePath, string $bookPath): Config
     {
-        $configPath = './ibis.php';
-        if (!file_exists($configPath)) {
+        $configPath = Str::deduplicate(implode('/', [$basePath, $bookPath, Ibis::JSON_CONFIG_FILE]), '/');
+        if (file_exists($configPath)) {
+            $config = self::config($configPath);
+
+            return $config->basePath($basePath)
+                ->bookPath($bookPath)
+                ->jsonConfig(true);
+        }
+
+        $configPath = str_replace(Ibis::JSON_CONFIG_FILE, Ibis::PHP_CONFIG_FILE, $configPath);
+        if (! file_exists($configPath)) {
             throw InvalidConfigFileException::fileDoesNotExist($configPath);
         }
 
+        $config = self::requireConfigFile($configPath);
+
+        return $config->basePath($basePath)
+            ->bookPath($bookPath);
+    }
+
+    public static function requireConfigFile(string $configPath): Config
+    {
         return require $configPath;
     }
 
@@ -125,6 +151,7 @@ class Ibis
             $config->sample(self::buildSampleConfigFromArray($data['sample']));
         }
 
+        $config->files(new FileList());
         if (isset($data['files']) && is_array($data['files'])) {
             $config->files(self::buildFilesConfigFromArray($data['files']));
         }
@@ -234,9 +261,9 @@ class Ibis
         if (isset($config['text'])) {
             $sample->text($config['text']);
         }
-        if (isset($config['pages']) && is_array($config['pages'])) {
-            foreach ($config['pages'] as $pageList) {
-                $sample->addPages($pageList[0], $pageList[1]);
+        if (isset($config['files']) && is_array($config['files'])) {
+            foreach ($config['files'] as $filename) {
+                $sample->addFile($filename);
             }
         }
 

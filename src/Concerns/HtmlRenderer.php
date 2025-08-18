@@ -1,72 +1,59 @@
 <?php
 
-namespace Ibis\Commands;
+namespace Ibis\Concerns;
 
-use Ibis\Config;
-use Ibis\Exceptions\InvalidConfigFileException;
+use Ibis\Enums\OutputFormat;
 use Ibis\Ibis;
 use Ibis\Markdown\Extensions\Aside;
 use Ibis\Markdown\Extensions\AsideExtension;
 use Ibis\Markdown\Extensions\AsideRenderer;
-use League\CommonMark\Extension\Attributes\AttributesExtension;
-use SplFileInfo;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use League\CommonMark\Environment\Environment;
+use League\CommonMark\Extension\Attributes\AttributesExtension;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
-use League\CommonMark\Extension\FrontMatter\FrontMatterExtension;
-use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
-use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\Extension\CommonMark\Node\Block\FencedCode;
 use League\CommonMark\Extension\CommonMark\Node\Block\IndentedCode;
+use League\CommonMark\Extension\FrontMatter\FrontMatterExtension;
 use League\CommonMark\Extension\FrontMatter\Output\RenderedContentWithFrontMatter;
+use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
+use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\MarkdownConverter;
-use Spatie\CommonMarkHighlighter\IndentedCodeRenderer;
 use Spatie\CommonMarkHighlighter\FencedCodeRenderer;
+use Spatie\CommonMarkHighlighter\IndentedCodeRenderer;
+use SplFileInfo;
 
-class BaseBuildCommand extends Command
+use function Laravel\Prompts\info;
+
+trait HtmlRenderer
 {
-    protected OutputInterface $output;
-
-    protected Filesystem $disk;
-
-    protected string $currentPath;
-
-    protected Config $config;
-
-    protected function preExecute(InputInterface $input, OutputInterface $output): bool
+    protected function buildHtmlFile(OutputFormat $outputFormat): string
     {
-        $this->disk = new Filesystem();
-        $this->output = $output;
+        $this->config->breakLevel(1);
 
-        try {
-            $this->config = Ibis::loadConfig();
-        } catch (InvalidConfigFileException $exception) {
-            $this->output->writeln("<error>{$exception->getMessage()}</error>");
-            $this->output->writeln('<info>Did you run `ibis-next init`?</info>');
-            return false;
+        $template = $this->disk->get(Ibis::buildPath([$this->config->getAssetsPath(), 'theme-html.html']));
+        $outputHtml = str_replace("{{\$title}}", $this->config->getTitle(), $template);
+        $outputHtml = str_replace("{{\$author}}", $this->config->getAuthor(), $outputHtml);
+
+        $chapters = $this->buildHtml();
+        $html = '';
+        foreach ($chapters as $chapter) {
+            info("-> ❇️ {$chapter["mdfile"]} ...");
+            $html .= $chapter["html"];
         }
 
-        $this->output->writeln('<info>Loading config/assets from current directory</info>');
-        $this->output->writeln('<info>Loading config file from: ./ibis.php</info>');
+        $outputHtml = str_replace("{{\$body}}", $html, $outputHtml);
+        $filename = Ibis::buildPath([
+            $this->config->getExportPath(),
+            "{$this->config->outputFileName()}{$outputFormat->extension()}",
+        ]);
+        file_put_contents($filename, $outputHtml);
 
-        $contentPath = $this->config->getContentPath();
-        if (!file_exists($contentPath) || !is_dir($contentPath)) {
-            $this->output->writeln("<error>Error, check if {$contentPath} exists.</error>");
-            return false;
-        }
-
-        $this->output->writeln("<info>Loading content from: {$contentPath} </info>");
-
-        return true;
+        return $filename;
     }
 
     protected function buildHtml(bool $extractImages = false): Collection
     {
-        $this->output->writeln('<fg=yellow>==></> Parsing Markdown ...');
+        info('Parsing Markdown ...');
 
         $environment = new Environment([]);
         $environment->addExtension(new CommonMarkCoreExtension());
@@ -97,8 +84,8 @@ class BaseBuildCommand extends Command
         $fileList = [];
         if ($this->config->getFiles()->files() !== []) {
             foreach ($this->config->getFiles()->files() as $file) {
-                $fileList[] = $filefound;
-                $filefound = new SplFileInfo("{$this->config->getContentPath()}/{$file}}");
+                $fileList[] = new SplFileInfo(Ibis::buildPath([$this->config->getContentPath(), $file]));
+
             }
         } else {
             $fileList = $this->disk->allFiles($this->config->getContentPath());
@@ -162,46 +149,5 @@ class BaseBuildCommand extends Command
         $html = str_replace("<blockquote>\n<p>[!WARNING]", "<blockquote class='warning'><p><strong>Warning:</strong>", $html);
 
         return str_replace(array_keys($commands), array_values($commands), $html);
-    }
-
-    protected function ensureExportDirectoryExists(): void
-    {
-        $this->output->writeln('<fg=yellow>==></> Preparing Export Directory ...');
-        $exportDir = $this->config->getExportPath();
-
-        if (!$this->disk->isDirectory($exportDir)) {
-            $this->disk->makeDirectory($exportDir, 0755, true);
-        }
-    }
-
-    public function isAbsolutePath($path)
-    {
-        /*
-         * Check to see if the path is a stream and check to see if its an actual
-         * path or file as realpath() does not support stream wrappers.
-         */
-        if ((is_dir($path) || is_file($path))) {
-            return true;
-        }
-
-        /*
-         * This is definitive if true but fails if $path does not exist or contains
-         * a symbolic link.
-         */
-        if (realpath($path) === $path) {
-            return true;
-        }
-
-        if ((string) $path === '' || '.' === $path[0]) {
-            return false;
-        }
-
-        // Windows allows absolute paths like this.
-        if (preg_match('#^[a-zA-Z]:\\\\#', (string) $path)) {
-            return true;
-        }
-
-        // A path starting with / or \ is absolute; anything else is relative.
-        return ('/' === $path[0] || '\\' === $path[0]);
     }
 }

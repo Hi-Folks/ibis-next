@@ -2,68 +2,103 @@
 
 namespace Ibis\Commands;
 
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use Mpdf\Mpdf;
-use Mpdf\MpdfException;
+use Ibis\Concerns\HasConfig;
+use Ibis\Concerns\HtmlRenderer;
+use Ibis\Concerns\PdfRenderer;
+use Ibis\Config\FileList;
+use Ibis\Enums\OutputFormat;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class SampleCommand extends BaseBuildCommand
+use function Laravel\Prompts\info;
+use function Laravel\Prompts\multiselect;
+use function Laravel\Prompts\warning;
+
+class SampleCommand extends Command
 {
-    /**
-     * Configure the command.
-     *
-     * @return void
-     */
-    protected function configure()
+    use HasConfig;
+    use HtmlRenderer;
+    use PdfRenderer;
+
+    protected function configure(): void
     {
         $this->setName('sample')
-            ->addArgument('theme', InputArgument::OPTIONAL, 'The name of the theme', 'light')
-            ->setDescription('Generate a sample from the PDF.');
+            ->setDescription('Generates a sample from the PDF')
+            ->addOption(name: 'default', description: 'Generates an .pdf sample of the book using the light theme')
+            ->addOption(name: 'light', description: 'Generates an .pdf sample of the book using the light theme')
+            ->addOption(name: 'dark', description: 'Generates an .pdf sample of the book using the dark theme')
+            ->addOption(
+                name: 'book-dir',
+                shortcut: 'd',
+                mode: InputOption::VALUE_OPTIONAL,
+                description: 'The base path where the book files will be created',
+                default: '',
+            );
     }
 
-    /**
-     * Execute the command.
-     *
-     * @throws FileNotFoundException
-     * @throws MpdfException
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if (!$this->preExecute($input, $output)) {
+        if (!$this->init('Generate Sample', $input->getOption('book-dir'))) {
             return Command::INVALID;
         }
 
-        $themeName = $input->getArgument('theme');
-        $pdfFilename = "{$this->config->getExportPath()}/{$this->config->outputFileName()}-{$themeName}.pdf";
+        if ($this->config->getSample()->files() === []) {
+            warning("No sample files configured. Update your {$this->config->configFilePath()} file first and run again.");
 
-        if (!$this->disk->isFile($pdfFilename)) {
-            $this->output->writeln("<fg=red> ⚠️  File {$pdfFilename} not exists (i need it for creating the sample)</>");
-            $this->output->writeln('<fg=yellow> Suggestion : try to execute `ibis-next pdf` before generating a sample</>');
             return Command::FAILURE;
         }
 
-        $mpdf = new Mpdf();
-        $mpdf->setSourceFile($pdfFilename);
+        $fileList = new FileList();
+        foreach ($this->config->getSample()->files() as $file) {
+            $fileList->addFile($file);
+        }
+        $this->config->files($fileList);
 
-        foreach ($this->config->getSample()->pages() as $range) {
-            foreach (range($range[0], $range[1]) as $page) {
-                $mpdf->useTemplate($mpdf->importPage($page));
-                $mpdf->AddPage();
-            }
+        $themes = $this->buildThemesFromCommand($input);
+        if ($themes === []) {
+            $themes = multiselect(
+                label: 'Which PDF theme would you like to create a sample from?',
+                options: [
+                    'pdf-light' => 'Light',
+                    'pdf-dark' => 'Dark',
+                ],
+                required: true,
+            );
         }
 
-        $mpdf->WriteHTML('<p style="text-align: center; font-size: 16px; line-height: 40px;">' . $this->config->getSample()->getText() . '</p>');
-        $sampleFileName = "{$this->config->getExportPath()}/sample-{$this->config->outputFileName()}-{$themeName}.pdf";
-        $this->output->writeln('<fg=yellow>==></> Writing Sample PDF To Disk ...');
-        $mpdf->Output($sampleFileName);
+        $createdFiles = [];
+        foreach ($themes as $theme) {
+            $filename = $this->buildPdfFile(OutputFormat::from($theme), true);
+            if (is_null($filename)) {
+                return command::FAILURE;
+            }
 
-        $this->output->writeln("<fg=green> ✅ File {$sampleFileName} created</>");
-        $this->output->writeln('');
-        $this->output->writeln("✨✨ {$mpdf->page} PDF pages ✨✨");
+            $createdFiles[strtoupper($theme)] = $filename;
+        }
+
+        info('✅ Done!');
+        info('These are the generated files.');
+        $this->showResultTable($createdFiles);
 
         return Command::SUCCESS;
+    }
+
+    private function buildThemesFromCommand(InputInterface $input): array
+    {
+        $defaultFlag = $input->getOption('default');
+        $lightFlag = $input->getOption('light');
+        $darkFlag = $input->getOption('dark');
+
+        $themes = [];
+        if ($defaultFlag || $lightFlag) {
+            $themes[] = 'pdf-light';
+        }
+        if ($darkFlag) {
+            $themes[] = 'pdf-dark';
+        }
+
+        return $themes;
     }
 }

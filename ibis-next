@@ -1,9 +1,8 @@
 #!/usr/bin/env php
 <?php
 
-use Ibis\Commands\BuildEpubCommand;
-use Ibis\Commands\BuildPdfCommand;
-use Ibis\Commands\BuildHtmlCommand;
+use Ibis\Commands\BuildCommand;
+use Ibis\Commands\ContentMetrics;
 use Ibis\Commands\InitCommand;
 use Ibis\Commands\SampleCommand;
 use Ibis\Commands\SortContentCommand;
@@ -22,10 +21,9 @@ $app = new Application('Ibis Next', '3.0 (stable)');
 
 // Authentication...
 $app->add(new InitCommand());
-$app->add(new BuildHtmlCommand());
-$app->add(new BuildPdfCommand());
-$app->add(new BuildEpubCommand());
+$app->add(new BuildCommand());
 $app->add(new SampleCommand());
 $app->add(new SortContentCommand());
+$app->add(new ContentMetrics());
 
 $app->run();

@@ -10,4 +10,5 @@ vendor/
 /content/
 /export/
 /ibis.php
+/ibis.json
 /stubs/export/

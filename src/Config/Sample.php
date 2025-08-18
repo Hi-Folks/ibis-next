@@ -7,9 +7,9 @@ class Sample
     private string $text = '';
 
     /**
-     * @var array<array<int>>
+     * @var array<string>
      */
-    private array $pages;
+    private array $files;
 
     public function text(string $text): self
     {
@@ -18,9 +18,9 @@ class Sample
         return $this;
     }
 
-    public function addPages(int $startPage, int $endPage): self
+    public function addFile(string $filename): self
     {
-        $this->pages[] = [$startPage, $endPage];
+        $this->files[] = $filename;
 
         return $this;
     }
@@ -30,8 +30,8 @@ class Sample
         return $this->text;
     }
 
-    public function pages(): array
+    public function files(): array
     {
-        return $this->pages;
+        return $this->files;
     }
 }

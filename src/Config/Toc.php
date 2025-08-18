@@ -49,9 +49,9 @@ class Toc
     public function toArray(): array
     {
         return [
-            'h1' => $this->h1,
-            'h2' => $this->h2,
-            'h3' => $this->h3,
+            'H1' => $this->h1,
+            'H2' => $this->h2,
+            'H3' => $this->h3,
         ];
     }
 }
