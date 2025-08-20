@@ -85,7 +85,7 @@ class InitCommand extends Command
                     required: true,
                 );
 
-            $this->createConfigFile($basePath, $useJSONConfig, $ibisConfigPath, $title, $author);
+            $this->createConfigFile($useJSONConfig, $ibisConfigPath, $title, $author);
         }
 
         try {
@@ -103,8 +103,8 @@ class InitCommand extends Command
         }
 
         info('Creating needed files and directories...');
-        $this->createAssetsDirectory($basePath);
-        $this->createContentDirectory($basePath);
+        $this->createAssetsDirectory();
+        $this->createContentDirectory();
 
         info('✅ Done!');
         note(
@@ -117,14 +117,14 @@ class InitCommand extends Command
     }
 
     private function createConfigFile(
-        string $basePath,
         bool $useJSONConfig,
         string $ibisConfigPath,
         string $title,
         string $author,
     ): void {
         $configContent = file_get_contents(Ibis::buildPath([
-            $basePath,
+            __DIR__,
+            '/../../',
             'stubs',
             $useJSONConfig ? Ibis::JSON_CONFIG_FILE : Ibis::PHP_CONFIG_FILE,
         ]));
@@ -136,7 +136,7 @@ class InitCommand extends Command
         info('Config file created!');
     }
 
-    private function createAssetsDirectory(string $basePath): void
+    private function createAssetsDirectory(): void
     {
         $assetsPath = $this->config->getAssetsPath();
         info('✨ Creating Assets directory at ' . $assetsPath);
@@ -158,7 +158,7 @@ class InitCommand extends Command
             'images/ibis-next-setting-page-header.png',
         ];
 
-        $dirAssetsStubs = Ibis::buildPath([$basePath, 'stubs', 'assets']);
+        $dirAssetsStubs = Ibis::buildPath([__DIR__, '/../../', 'stubs', 'assets']);
         foreach ($assetsToCopy as $asset) {
             $assetStub = Ibis::buildPath([$dirAssetsStubs, $asset]);
             if (file_exists($assetStub)) {
@@ -169,12 +169,12 @@ class InitCommand extends Command
         }
     }
 
-    private function createContentDirectory(string $basePath): void
+    private function createContentDirectory(): void
     {
         $contentPath = $this->config->getContentPath();
         info('✨ Creating Content directory at ' . $contentPath);
 
         $this->disk->makeDirectory($contentPath);
-        $this->disk->copyDirectory(Ibis::buildPath([$basePath, 'stubs', 'content']), $contentPath);
+        $this->disk->copyDirectory(Ibis::buildPath([__DIR__, '/../../', 'stubs', 'content']), $contentPath);
     }
 }
