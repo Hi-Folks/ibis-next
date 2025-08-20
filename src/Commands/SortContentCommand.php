@@ -50,7 +50,7 @@ class SortContentCommand extends Command
                 str_replace(['#', '##', '###'], '', explode("\n", $markdown)[0]),
             ));
 
-            $this->disk->move($file->getPathName(), Ibis::buildPath([$this->config->getContentPath(), "{$newName}.md"]));
+            $this->disk->move($file->getPathName(), Ibis::buildPath([$this->config->getContentPath(), $newName . '.md']));
         }
 
         info('✅ Done!');

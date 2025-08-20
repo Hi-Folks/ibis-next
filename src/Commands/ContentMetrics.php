@@ -42,7 +42,7 @@ class ContentMetrics extends Command
 
         $result = [];
         $count = 0;
-        foreach ($this->disk->files($this->config->getContentPath()) as $index => $file) {
+        foreach ($this->disk->files($this->config->getContentPath()) as $file) {
             $markdown = $this->disk->get($file->getPathname());
 
             $wordCount = str_word_count($markdown);
@@ -58,7 +58,7 @@ class ContentMetrics extends Command
             rows: $result,
         );
 
-        info("✨ BOOK WORD COUNT: {$count}");
+        info('✨ BOOK WORD COUNT: ' . $count);
 
         return Command::SUCCESS;
     }

@@ -52,8 +52,8 @@ class InitCommand extends Command
         $baseBookPath = Ibis::buildPath([$basePath, $bookDir]);
 
         if (! file_exists($baseBookPath) || ! is_dir($baseBookPath)) {
-            warning("The path '{$baseBookPath}' does not exist or is not a directory.");
-            info("✨ Creating directory '{$baseBookPath}'...");
+            warning(sprintf("The path '%s' does not exist or is not a directory.", $baseBookPath));
+            info(sprintf("✨ Creating directory '%s'...", $baseBookPath));
 
             mkdir($baseBookPath, recursive: true);
         }
@@ -90,8 +90,8 @@ class InitCommand extends Command
 
         try {
             $this->config = Ibis::loadConfig($basePath, $bookDir);
-        } catch (InvalidConfigFileException $exception) {
-            error($exception->getMessage());
+        } catch (InvalidConfigFileException $invalidConfigFileException) {
+            error($invalidConfigFileException->getMessage());
 
             return Command::FAILURE;
         }
@@ -108,9 +108,9 @@ class InitCommand extends Command
 
         info('✅ Done!');
         note(
-            "You can start building your content (markdown files) into the directory {$this->config->getContentPath()}"
+            'You can start building your content (markdown files) into the directory ' . $this->config->getContentPath()
             . PHP_EOL
-            . "You can change the configuration, for example by changing the title, the cover etc. editing the file {$ibisConfigPath}",
+            . ('You can change the configuration, for example by changing the title, the cover etc. editing the file ' . $ibisConfigPath),
         );
 
         return Command::SUCCESS;
@@ -130,6 +130,7 @@ class InitCommand extends Command
         ]));
         $configContent = str_replace('{{BOOK_TITLE}}', $title, $configContent);
         $configContent = str_replace('{{BOOK_AUTHOR}}', $author, $configContent);
+
         $this->disk->put($ibisConfigPath, $configContent);
 
         info('Config file created!');
@@ -138,7 +139,7 @@ class InitCommand extends Command
     private function createAssetsDirectory(string $basePath): void
     {
         $assetsPath = $this->config->getAssetsPath();
-        info("✨ Creating Assets directory at {$assetsPath}");
+        info('✨ Creating Assets directory at ' . $assetsPath);
 
         $this->disk->makeDirectory($assetsPath);
         $this->disk->makeDirectory($this->config->fontsDir());
@@ -163,7 +164,7 @@ class InitCommand extends Command
             if (file_exists($assetStub)) {
                 copy($assetStub, Ibis::buildPath([$assetsPath, $asset]));
             } else {
-                warning("File '{$asset}' not found. I will skip this file.");
+                warning(sprintf("File '%s' not found. I will skip this file.", $asset));
             }
         }
     }
@@ -171,7 +172,7 @@ class InitCommand extends Command
     private function createContentDirectory(string $basePath): void
     {
         $contentPath = $this->config->getContentPath();
-        info("✨ Creating Content directory at {$contentPath}");
+        info('✨ Creating Content directory at ' . $contentPath);
 
         $this->disk->makeDirectory($contentPath);
         $this->disk->copyDirectory(Ibis::buildPath([$basePath, 'stubs', 'content']), $contentPath);

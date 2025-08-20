@@ -197,9 +197,11 @@ class Ibis
         if (isset($config['h1'])) {
             $toc->h1($config['h1']);
         }
+
         if (isset($config['h2'])) {
             $toc->h2($config['h2']);
         }
+
         if (isset($config['h3'])) {
             $toc->h3($config['h3']);
         }
@@ -214,6 +216,7 @@ class Ibis
         if (isset($config['image'])) {
             $cover->src($config['image']);
         }
+
         if (isset($config['position'])) {
             $cover->position($config['position']);
         }
@@ -221,18 +224,23 @@ class Ibis
         if (isset($config['height'])) {
             $cover->height($config['height']);
         }
+
         if (isset($config['width'])) {
             $cover->width($config['width']);
         }
+
         if (isset($config['left'])) {
             $cover->left($config['left']);
         }
+
         if (isset($config['right'])) {
             $cover->right($config['right']);
         }
+
         if (isset($config['top'])) {
             $cover->top($config['top']);
         }
+
         if (isset($config['bottom'])) {
             $cover->bottom($config['bottom']);
         }
@@ -247,6 +255,7 @@ class Ibis
         if (isset($config['style'])) {
             $header->style($config['style']);
         }
+
         if (isset($config['text'])) {
             $header->text($config['text']);
         }
@@ -261,9 +270,16 @@ class Ibis
         if (isset($config['text'])) {
             $sample->text($config['text']);
         }
+
         if (isset($config['files']) && is_array($config['files'])) {
             foreach ($config['files'] as $filename) {
                 $sample->addFile($filename);
+            }
+        }
+
+        if (isset($config['pages']) && is_array($config['pages'])) {
+            foreach ($config['pages'] as $pages) {
+                $sample->addPages($pages);
             }
         }
 

@@ -4,6 +4,7 @@
 use Ibis\Commands\BuildCommand;
 use Ibis\Commands\ContentMetrics;
 use Ibis\Commands\InitCommand;
+use Ibis\Commands\ConfigMigrate;
 use Ibis\Commands\SampleCommand;
 use Ibis\Commands\SortContentCommand;
 use Symfony\Component\Console\Application;
@@ -25,5 +26,6 @@ $app->add(new BuildCommand());
 $app->add(new SampleCommand());
 $app->add(new SortContentCommand());
 $app->add(new ContentMetrics());
+$app->add(new ConfigMigrate());
 
 $app->run();

@@ -37,14 +37,14 @@ trait HtmlRenderer
         $chapters = $this->buildHtml();
         $html = '';
         foreach ($chapters as $chapter) {
-            info("-> ❇️ {$chapter["mdfile"]} ...");
+            info(sprintf('-> ❇️ %s ...', $chapter["mdfile"]));
             $html .= $chapter["html"];
         }
 
         $outputHtml = str_replace("{{\$body}}", $html, $outputHtml);
         $filename = Ibis::buildPath([
             $this->config->getExportPath(),
-            "{$this->config->outputFileName()}{$outputFormat->extension()}",
+            $this->config->outputFileName() . $outputFormat->extension(),
         ]);
         file_put_contents($filename, $outputHtml);
 

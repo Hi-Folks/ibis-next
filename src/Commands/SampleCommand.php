@@ -12,6 +12,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\warning;
@@ -45,7 +46,7 @@ class SampleCommand extends Command
         }
 
         if ($this->config->getSample()->files() === []) {
-            warning("No sample files configured. Update your {$this->config->configFilePath()} file first and run again.");
+            warning(sprintf('No sample files configured. Update your %s file first and run again.', $this->config->configFilePath()));
 
             return Command::FAILURE;
         }
@@ -54,6 +55,7 @@ class SampleCommand extends Command
         foreach ($this->config->getSample()->files() as $file) {
             $fileList->addFile($file);
         }
+
         $this->config->files($fileList);
 
         $themes = $this->buildThemesFromCommand($input);
@@ -70,12 +72,15 @@ class SampleCommand extends Command
 
         $createdFiles = [];
         foreach ($themes as $theme) {
-            $filename = $this->buildPdfFile(OutputFormat::from($theme), true);
-            if (is_null($filename)) {
+
+            try {
+                $filename = $this->buildPdfFile(OutputFormat::from($theme), true);
+            } catch (\Exception $e) {
+                error("Error in building PDF files. " . $e->getMessage());
                 return command::FAILURE;
             }
 
-            $createdFiles[strtoupper($theme)] = $filename;
+            $createdFiles[strtoupper((string) $theme)] = $filename;
         }
 
         info('✅ Done!');
@@ -95,6 +100,7 @@ class SampleCommand extends Command
         if ($defaultFlag || $lightFlag) {
             $themes[] = 'pdf-light';
         }
+
         if ($darkFlag) {
             $themes[] = 'pdf-dark';
         }

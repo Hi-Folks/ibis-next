@@ -68,13 +68,13 @@ class BuildCommand extends Command
         foreach ($outputFormats as $outputFormat) {
             try {
                 $outputFormat = OutputFormat::from($outputFormat);
-                info("✨ Building the {$outputFormat->label()} file ...");
+                info(sprintf('✨ Building the %s file ...', $outputFormat->label()));
 
                 $createdFiles[$outputFormat->label()] = $this->{$outputFormat->builderMethod()}($outputFormat);
                 info('The file was generated successfully!');
                 info('-----');
             } catch (Exception $exception) {
-                error("Failed to build the {$outputFormat->label()} file - {$exception->getMessage()}");
+                error(sprintf('Failed to build the %s file - %s', $outputFormat->label(), $exception->getMessage()));
 
                 continue;
             }
@@ -100,12 +100,15 @@ class BuildCommand extends Command
         if ($epubFlag) {
             $outputFormats[] = OutputFormat::EPUB->value;
         }
+
         if ($htmlFlag) {
             $outputFormats[] = OutputFormat::HTML->value;
         }
+
         if ($pdfFlag || $pdfLightFlag) {
             $outputFormats[] = OutputFormat::PDF_LIGHT->value;
         }
+
         if ($pdfDarkFlag) {
             $outputFormats[] = OutputFormat::PDF_DARK->value;
         }

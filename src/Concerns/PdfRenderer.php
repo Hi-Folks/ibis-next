@@ -50,6 +50,7 @@ trait PdfRenderer
         $pdf->SetCreator($this->config->getAuthor());
         $pdf->SetBasePath(realpath($this->config->getContentPath()));
         $pdf->SetMargins(400, 100, 12);
+
         $pdf->setAutoTopMargin = 'pad';
         $pdf->setAutoBottomMargin = 'pad';
 
@@ -62,7 +63,7 @@ trait PdfRenderer
             $pathCoverImage = Ibis::buildPath([$this->config->getAssetsPath(), $coverConfig->getSrc()]);
             $htmlCover = Ibis::buildPath([$this->config->getAssetsPath(), 'cover.html']);
             if ($this->disk->isFile($pathCoverImage)) {
-                info("-> ✨ Adding Book Cover {$pathCoverImage} ...");
+                info(sprintf('-> ✨ Adding Book Cover %s ...', $pathCoverImage));
 
                 $coverPosition = $coverConfig->positionStyle();
                 $coverDimensions = $coverConfig->dimensionsStyle();
@@ -77,12 +78,12 @@ HTML,
 
                 $pdf->AddPage();
             } elseif ($this->disk->isFile($htmlCover)) {
-                info("-> ✨ Adding Book Cover {$htmlCover} ...");
+                info(sprintf('-> ✨ Adding Book Cover %s ...', $htmlCover));
 
-                $pdf->WriteHTML($this->disk->get("{$htmlCover}"));
+                $pdf->WriteHTML($this->disk->get($htmlCover));
                 $pdf->AddPage();
             } else {
-                warning("-> No '{$pathCoverImage}' File Found. Skipping ...");
+                warning(sprintf("-> No '%s' File Found. Skipping ...", $pathCoverImage));
             }
         }
 
@@ -91,7 +92,7 @@ HTML,
 
         $headerConfig = $this->config->getHeader();
         foreach ($chapters as $chapter) {
-            info("-> ❇️ {$chapter["mdfile"]} ...");
+            info(sprintf('-> ❇️ %s ...', $chapter["mdfile"]));
 
             $pdf->SetHTMLHeader(
                 '
@@ -111,16 +112,16 @@ HTML,
         );
 
         info('-> Writing PDF To Disk ...');
-        info("✨✨ {$pdf->page} PDF pages ✨✨");
+        info(sprintf('✨✨ %s PDF pages ✨✨', $pdf->page));
 
         if ($isSample) {
             $pdf->WriteHTML('<p style="text-align: center; font-size: 16px; line-height: 40px;">' . $this->config->getSample()->getText() . '</p>');
         }
 
-        $baseName = "{$this->config->outputFileName()}-{$themeName}{$outputFormat->extension()}";
+        $baseName = sprintf('%s-%s%s', $this->config->outputFileName(), $themeName, $outputFormat->extension());
         $filename = Ibis::buildPath([
             $this->config->getExportPath(),
-            $isSample ? "sample-{$baseName}" : $baseName,
+            $isSample ? 'sample-' . $baseName : $baseName,
         ]);
         $pdf->Output($filename);
 
@@ -132,7 +133,7 @@ HTML,
      */
     private function getTheme(string $theme): string
     {
-        return $this->disk->get(Ibis::buildPath([$this->config->getAssetsPath(), "theme-{$theme}.html"]));
+        return $this->disk->get(Ibis::buildPath([$this->config->getAssetsPath(), sprintf('theme-%s.html', $theme)]));
     }
 
     private function fonts(array $fonts, array $fontData): array

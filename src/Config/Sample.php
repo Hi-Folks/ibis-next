@@ -11,6 +11,12 @@ class Sample
      */
     private array $files;
 
+    /**
+     * @var array<array>
+     */
+    private array $pages = [];
+
+
     public function text(string $text): self
     {
         $this->text = $text;
@@ -33,5 +39,17 @@ class Sample
     public function files(): array
     {
         return $this->files;
+    }
+
+    public function pages(): array
+    {
+        return $this->pages;
+    }
+
+    public function addPages(array $pages): self
+    {
+        $this->pages[] = $pages;
+
+        return $this;
     }
 }

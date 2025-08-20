@@ -30,12 +30,12 @@ trait EpubRenderer
         $content_end = "</body></html>";
 
         $book = new EPub(EPub::BOOK_VERSION_EPUB3, "en", EPub::DIRECTION_LEFT_TO_RIGHT);
-        $book->setIdentifier(md5("{$this->config->getTitle()} - {$this->config->getAuthor()}"), EPub::IDENTIFIER_UUID);
+        $book->setIdentifier(md5(sprintf('%s - %s', $this->config->getTitle(), $this->config->getAuthor())), EPub::IDENTIFIER_UUID);
         $book->setLanguage("en");
-        $book->setDescription("{$this->config->getTitle()} - {$this->config->getAuthor()}");
+        $book->setDescription(sprintf('%s - %s', $this->config->getTitle(), $this->config->getAuthor()));
         $book->setTitle($this->config->getTitle());
         $book->setAuthor($this->config->getAuthor(), $this->config->getAuthor());
-        $book->setIdentifier("{$this->config->getTitle()}&amp;stamp=" . time(), EPub::IDENTIFIER_URI);
+        $book->setIdentifier($this->config->getTitle() . '&amp;stamp=' . time(), EPub::IDENTIFIER_URI);
 
         $book->addCSSFile("style.css", "css1", $this->getStyle("style"));
         $book->addCSSFile(
@@ -54,7 +54,7 @@ trait EpubRenderer
         $coverConfig = $this->config->getCover();
         $pathCoverImage = Ibis::buildPath([$this->config->getAssetsPath(), $coverConfig->getSrc()]);
         if ($this->disk->isFile($pathCoverImage)) {
-            info("-> ✨ Adding Book Cover {$pathCoverImage} ...");
+            info(sprintf('-> ✨ Adding Book Cover %s ...', $pathCoverImage));
             $book->setCoverImage('cover.jpg', file_get_contents($pathCoverImage), mime_content_type($pathCoverImage));
         }
 
@@ -68,7 +68,7 @@ trait EpubRenderer
 
 
         foreach ($chapters as $key => $chapter) {
-            info("-> ❇️ {$chapter["mdfile"]} ...");
+            info(sprintf('-> ❇️ %s ...', $chapter["mdfile"]));
 
             // fixing html
             $chapter["html"] = str_replace("</span> <span", "</span>&nbsp;<span", $chapter["html"]);
@@ -106,7 +106,7 @@ trait EpubRenderer
 
         $filename = Ibis::buildPath([
             $this->config->getExportPath(),
-            "{$this->config->outputFileName()}{$outputFormat->extension()}",
+            $this->config->outputFileName() . $outputFormat->extension(),
         ]);
         @$book->saveBook($filename);
 
@@ -118,6 +118,6 @@ trait EpubRenderer
      */
     private function getStyle(string $themeName): string
     {
-        return $this->disk->get(Ibis::buildPath([$this->config->getAssetsPath(), "{$themeName}.css"]));
+        return $this->disk->get(Ibis::buildPath([$this->config->getAssetsPath(), $themeName . '.css']));
     }
 }

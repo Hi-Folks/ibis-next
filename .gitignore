@@ -12,3 +12,4 @@ vendor/
 /ibis.php
 /ibis.json
 /stubs/export/
+/ibis.backup.*.*

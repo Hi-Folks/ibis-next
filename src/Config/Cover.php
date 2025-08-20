@@ -20,6 +20,9 @@ class Cover
 
     private float $bottom = 0;
 
+    private string $positionStyleString = '';
+
+
     public function src(string $src): self
     {
         $this->src = $src;
@@ -116,13 +119,29 @@ class Cover
         return $this->bottom;
     }
 
+    public function setDimensionStyleString(string $dimensionStyleString): self
+    {
+        return $this;
+    }
+
+    public function setPositionStyleString(string $positionStyleString): self
+    {
+        $this->positionStyleString = $positionStyleString;
+        return $this;
+    }
+
     public function positionStyle(): string
     {
-        return "position: {$this->position}; left: {$this->left}; right: {$this->right}; top: {$this->top}; bottom: {$this->bottom};";
+        if ($this->positionStyleString != "") {
+            return $this->positionStyleString;
+        }
+
+        return sprintf('position: %s; left: %s; right: %s; top: %s; bottom: %s;', $this->position, $this->left, $this->right, $this->top, $this->bottom);
+
     }
 
     public function dimensionsStyle(): string
     {
-        return "width: {$this->width}mm; height: {$this->height}mm; margin: 0";
+        return sprintf('width: %smm; height: %smm; margin: 0', $this->width, $this->height);
     }
 }

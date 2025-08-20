@@ -13,7 +13,9 @@ trait PathManager
 
     public static function buildPath(array $pathFragments): string
     {
-        return Str::deduplicate(implode('/', $pathFragments), '/');
+        $path = Str::deduplicate(implode('/', $pathFragments), '/');
+        // Replace multiple "./" at the beginning with a single "./"
+        return preg_replace('/^(?:\.\\/)+/', './', $path);
     }
 
     public static function isAbsolutePath(string $path): bool
@@ -34,12 +36,12 @@ trait PathManager
             return true;
         }
 
-        if ((string) $path === '' || '.' === $path[0]) {
+        if ($path === '' || '.' === $path[0]) {
             return false;
         }
 
         // Windows allows absolute paths like this.
-        if (preg_match('#^[a-zA-Z]:\\\\#', (string) $path)) {
+        if (preg_match('#^[a-zA-Z]:\\\\#', $path)) {
             return true;
         }
 
