@@ -46,7 +46,7 @@ class ConfigMigrate extends Command
             unset($config["toc_levels"]["H1"]);
             unset($config["toc_levels"]["H2"]);
             unset($config["toc_levels"]["H3"]);
-            if (key_exists("sample", $config)) {
+            if (array_key_exists("sample", $config)) {
                 $samplePages = $config["sample"];
                 unset($config["sample"]);
                 $config["sample"]["pages"] = $samplePages;

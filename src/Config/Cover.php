@@ -132,7 +132,7 @@ class Cover
 
     public function positionStyle(): string
     {
-        if ($this->positionStyleString != "") {
+        if ($this->positionStyleString !== "") {
             return $this->positionStyleString;
         }
 
