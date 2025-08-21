@@ -46,7 +46,7 @@ class ContentMetrics extends Command
             $markdown = $this->disk->get($file->getPathname());
 
             $wordCount = str_word_count($markdown);
-            $result[] = [$file->getPathname(), $wordCount];
+            $result[] = [$file->getPathname(), number_format($wordCount)];
             $count += $wordCount;
         }
 
@@ -58,7 +58,7 @@ class ContentMetrics extends Command
             rows: $result,
         );
 
-        info('✨ BOOK WORD COUNT: ' . $count);
+        info('✨ BOOK WORD COUNT: ' . number_format($count));
 
         return Command::SUCCESS;
     }
