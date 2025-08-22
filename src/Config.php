@@ -50,6 +50,12 @@ class Config
 
     private FileList $files;
 
+    public function __construct()
+    {
+        $this->header = new Header();
+
+    }
+
     public function title(string $title): self
     {
         $this->title = $title;
