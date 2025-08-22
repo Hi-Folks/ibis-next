@@ -17,6 +17,7 @@ use League\CommonMark\Extension\FrontMatter\FrontMatterExtension;
 use League\CommonMark\Extension\FrontMatter\Output\RenderedContentWithFrontMatter;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
 use League\CommonMark\Extension\Table\TableExtension;
+use League\CommonMark\Extension\TaskList\TaskListExtension;
 use League\CommonMark\MarkdownConverter;
 use Spatie\CommonMarkHighlighter\FencedCodeRenderer;
 use Spatie\CommonMarkHighlighter\IndentedCodeRenderer;
@@ -62,6 +63,8 @@ trait HtmlRenderer
         $environment->addExtension(new FrontMatterExtension());
         $environment->addExtension(new AsideExtension());
         $environment->addExtension(new AttributesExtension());
+        $environment->addExtension(new TaskListExtension());
+
 
         $environment->addRenderer(FencedCode::class, new FencedCodeRenderer([
             'html', 'php', 'js', 'bash', 'json',
