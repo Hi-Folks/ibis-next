@@ -60,6 +60,13 @@ The following books have been created using **Ibis Next**. This list highlights 
 - **Formats available**: PDF and EPUB
 - **Link:** [View Book](https://wendelladriel.com/best-practices-for-laravel-enterprise-applications)
 
+📚 **Mastering PHPStan**
+
+- **Author(s):** David Carr
+- **Description:** Transform your PHP development with static analysis. Catch bugs before they reach production, improve code quality, and build more maintainable applications.
+- **Formats available**: PDF
+- **Link:** [View Book](https://dcblog.dev/books/mastering-phpstan)
+
 ## Installation
 
 Before you begin, ensure that you have PHP 8.1 or above installed on your system, and ensure the gd extension is enabled in your `php.ini` file.
