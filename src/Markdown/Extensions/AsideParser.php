@@ -21,8 +21,8 @@ class AsideParser implements BlockStartParserInterface
             $isAside = true;
         }
 
-        if (str_starts_with($cursor->getRemainder(), ':::warning') ||
-            str_starts_with($cursor->getRemainder(), ':::caution')) {
+        if (str_starts_with($cursor->getRemainder(), ':::warning')
+            || str_starts_with($cursor->getRemainder(), ':::caution')) {
             $type = Aside::TYPE_CAUTION;
             $title = "Caution";
             $isAside = true;

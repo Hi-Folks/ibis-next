@@ -54,8 +54,8 @@ class SampleCommand extends BaseBuildCommand
 
         $themeName = $input->getArgument('theme');
 
-        $pdfFilename =
-            Config::buildPath($this->config->workingPath, 'export', $this->config->outputFileName() . '-' . $themeName . '.pdf');
+        $pdfFilename
+            = Config::buildPath($this->config->workingPath, 'export', $this->config->outputFileName() . '-' . $themeName . '.pdf');
 
 
         if (!$this->disk->isFile($pdfFilename)) {

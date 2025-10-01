@@ -89,8 +89,8 @@ class BuildEpubCommand extends BaseBuildCommand
         string $currentPath,
     ): bool {
 
-        $content_start =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        $content_start
+        = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         . "<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\">\n"
         . "<head>"
         . "<meta http-equiv=\"Default-Style\" content=\"text/html; charset=utf-8\" />\n"
