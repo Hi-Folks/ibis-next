@@ -9,6 +9,8 @@ use Illuminate\Support\Arr;
 use PHPePub\Core\EPub;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\text;
+use function Laravel\Prompts\warning;
 
 trait EpubRenderer
 {
@@ -34,6 +36,7 @@ trait EpubRenderer
         $book->setLanguage("en");
         $book->setDescription(sprintf('%s - %s', $this->config->getTitle(), $this->config->getAuthor()));
         $book->setTitle($this->config->getTitle());
+
         $book->setAuthor($this->config->getAuthor(), $this->config->getAuthor());
         $book->setIdentifier($this->config->getTitle() . '&amp;stamp=' . time(), EPub::IDENTIFIER_URI);
 
@@ -53,9 +56,12 @@ trait EpubRenderer
 
         $coverConfig = $this->config->getCover();
         $pathCoverImage = Ibis::buildPath([$this->config->getAssetsPath(), $coverConfig->getSrc()]);
+        info(sprintf('-> ✨ Looking for Book Cover %s ...', $pathCoverImage));
         if ($this->disk->isFile($pathCoverImage)) {
             info(sprintf('-> ✨ Adding Book Cover %s ...', $pathCoverImage));
             $book->setCoverImage('cover.jpg', file_get_contents($pathCoverImage), mime_content_type($pathCoverImage));
+        } else {
+            warning(sprintf('-> ✨ Book Cover %s not found, skipped...', $pathCoverImage));
         }
 
         $book->addChapter("Cover", "Cover.html", $cover);
