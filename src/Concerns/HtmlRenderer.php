@@ -95,7 +95,7 @@ trait HtmlRenderer
         }
 
         return collect($fileList)
-            ->map(function (SplFileInfo $file, $i) use ($converter, $extractImages) {
+            ->map(function (SplFileInfo $file, $i) use ($converter, $extractImages): \Illuminate\Support\Collection {
                 $chapter = collect([]);
                 if ($file->getExtension() !== 'md') {
                     $chapter->put("mdfile", $file->getFilename());

@@ -90,6 +90,9 @@ class SampleCommand extends Command
         return Command::SUCCESS;
     }
 
+    /**
+     * @return string[]
+     */
     private function buildThemesFromCommand(InputInterface $input): array
     {
         $defaultFlag = $input->getOption('default');

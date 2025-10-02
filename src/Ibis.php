@@ -59,14 +59,14 @@ class Ibis
     public static function requireConfigFile(string $configPath): Config
     {
         $config = require $configPath;
-        if (is_array($config)) {
-            if (key_exists("title", $config)) {
-                throw InvalidConfigFileException::oldConfigFile($configPath);
-            }
+        if (is_array($config) && array_key_exists("title", $config)) {
+            throw InvalidConfigFileException::oldConfigFile($configPath);
         }
+
         if ($config instanceof Config) {
             return $config;
         }
+
         throw InvalidConfigFileException::invalidConfigFile($configPath);
 
 
