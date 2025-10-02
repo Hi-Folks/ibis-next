@@ -15,4 +15,9 @@ class InvalidConfigFileException extends Exception
     {
         return new self(sprintf("The configuration file '%s' is not a valid JSON file.", $filePath));
     }
+
+    public static function oldConfigFile(string $filePath): self
+    {
+        return new self(sprintf("Old Config file detected in  '%s'.", $filePath));
+    }
 }
