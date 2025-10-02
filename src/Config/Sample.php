@@ -9,7 +9,7 @@ class Sample
     /**
      * @var array<string>
      */
-    private array $files;
+    private array $files = [];
 
     /**
      * @var array<array>
