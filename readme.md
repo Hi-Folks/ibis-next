@@ -62,7 +62,7 @@ The following books have been created using **Ibis Next**. This list highlights 
 
 ## Installation
 
-Before you begin, ensure that you have PHP 8.1 or above installed on your system, and ensure the gd extension is enabled in your `php.ini` file.
+Before you begin, ensure that you have PHP 8.2 or above installed on your system, and ensure the gd extension is enabled in your `php.ini` file.
 
 
 ### Installing ibis-next locally
@@ -464,6 +464,49 @@ This command will use the generated files from the `ibis-next build` command to 
 If you are using or if you are evaluating using Ibis Next for creating your next eBook, let me know.
 I can support you by demoing the tool, helping with the configuration or evaluating feature requests.
 
+## Config migration
+
+The `config:migrate` command helps you **upgrade old array-based configuration files (Ibis Next v2)** to the new **Config class (v3)** format introduced in Ibis Next v3.
+
+This is particularly useful when migrating existing projects to Ibis Next v3, ensuring your configuration structure is fully compatible with the latest system.
+
+### Description
+
+Migrates legacy array-based configs to the new `Config` class format.
+
+### Usage
+
+```
+./ibis-next config:migrate [options]
+```
+
+### Options
+
+| Option                      | Description                                     | Default                  |
+| --------------------------- | ----------------------------------------------- | ------------------------ |
+| `-d, --book-dir[=BOOK-DIR]` | The base path where the config file is located. | `""` (current directory) |
+
+### Example
+
+```
+# Migrate config files in the current directory
+./ibis-next config:migrate
+
+# Migrate config files in a specific book directory
+./ibis-next config:migrate --book-dir=/path/to/book
+```
+
+### What It Does
+
+- Detects old array-style configuration structures.
+- Converts them into the new configuration schema (v3).
+- Saves the updated configuration in the same location.
+- Ensures backward compatibility with existing Ibis Next tools.
+
+### Notes
+
+- Always back up your existing configuration files before running the migration.
+- After migration, review the generated config to verify that all settings were properly converted.
 
 
 ## Development

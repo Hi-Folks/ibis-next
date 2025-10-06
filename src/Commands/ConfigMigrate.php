@@ -3,9 +3,11 @@
 namespace Ibis\Commands;
 
 use Ibis\Concerns\HasConfig;
+use Ibis\Ibis;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function Laravel\Prompts\error;
@@ -19,6 +21,13 @@ class ConfigMigrate extends Command
     protected function configure(): void
     {
         $this->setName('config:migrate')
+            ->addOption(
+                name: 'book-dir',
+                shortcut: 'd',
+                mode: InputOption::VALUE_OPTIONAL,
+                description: 'The base path where the config file is placed',
+                default: '',
+            )
             ->setDescription('Migrates old array configs to new Config class (v3)');
     }
 
@@ -27,11 +36,36 @@ class ConfigMigrate extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $configFile = "./ibis.php";
+        //$configFile = "./ibis.php";
         $configJsonFile = "./ibis.json";
 
+        $bookDir = $input->getOption('book-dir');
+        $basePath = Ibis::basePath();
+        $baseBookPath = Ibis::buildPath([$basePath, $bookDir]);
+
+        $configFile = Ibis::buildPath([
+            $baseBookPath,
+            Ibis::PHP_CONFIG_FILE,
+        ]);
+
+        $configJsonFile = Ibis::buildPath([
+            $baseBookPath,
+            Ibis::JSON_CONFIG_FILE,
+        ]);
+
+
         info(sprintf('✨ Loading %s file ...', $configFile));
-        $config = require $configFile;
+        if (file_exists($configFile)) {
+            $config = require $configFile;
+        } else {
+            error("Config file : " . $configFile . " doesn't exist.");
+            if (! is_dir($baseBookPath)) {
+                error("Also the directory : " . $baseBookPath . " doesn't exist.");
+            }
+
+            return Command::INVALID;
+        }
+
 
         if (is_array($config)) {
             info(sprintf('✨ %s file has array format...', $configFile));
