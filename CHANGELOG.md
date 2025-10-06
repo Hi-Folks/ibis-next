@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.0 - WIP
+
+- New Config format/schema
+- Better prompting for missing command line parameters
+- Refactoring commands
+
+
 ## 2.0.7 - 11th February 2025
 - Fix Page Header for Table of Content
 
